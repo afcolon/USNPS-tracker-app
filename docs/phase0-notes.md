@@ -27,17 +27,22 @@ Nothing beyond that minimal wiring was built.
 - **CORS:** backend allows `http://localhost:5173` (Vite's default dev port) via `CORS_ORIGINS` setting.
 - Deleted the Vite template's demo assets/markup (hero image, counter button, docs/social links, associated CSS) and replaced `App.tsx` with a minimal page that calls `/health` and `/health/db` and renders their status — this is the "talk to each other" proof for Phase 0.
 
-## In progress — backend dependency install
+## Backend verification (done)
 
-`uv add` for the backend's runtime deps (fastapi, uvicorn, sqlalchemy, asyncpg,
-pydantic-settings) hit repeated network timeouts fetching wheel metadata from
-PyPI through this session's proxy. Resolution itself succeeded — `uv.lock` is
-complete and consistent (all 35 packages resolved, including every runtime
-dep) — but the actual wheel downloads into the local `.venv` were still slow/
-in progress as of this commit. `.venv` isn't committed, so this doesn't affect
-repo state; it just means `uv sync` may need a retry (or more patience) the
-first time it's run in a fresh environment. Verification (ruff, pytest, a
-uvicorn smoke test) is still pending and will follow in a subsequent commit.
+The dependency install that was in progress at the last commit finished
+successfully (19 packages, ~5 min over this session's proxy — just slow, not
+actually broken). Verified:
+
+- `uv run ruff check .` — clean (one real finding fixed: switched `/health/db`
+  from `Depends()` as a default argument to the `Annotated[AsyncSession,
+  Depends(get_db)]` style, which is FastAPI's current recommended pattern and
+  avoids ruff's B008 false-positive on the old style)
+- `uv run ruff format --check .` — clean
+- `uv run pytest` — 1 passed (`/health`)
+- `uv run uvicorn app.main:app` smoke test — boots fine; `GET /health` →
+  `200 {"status": "ok"}`; `GET /health/db` → `500 ConnectionRefusedError`
+  (expected and correct, since no Postgres is reachable in this sandbox —
+  see the Docker note below)
 
 ## Open item — needs your input
 
