@@ -1,14 +1,9 @@
-from typing import Annotated
-
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.db import get_db
+from app.core.db import DbSession
 
 router = APIRouter(tags=["health"])
-
-DbSession = Annotated[AsyncSession, Depends(get_db)]
 
 
 @router.get("/health")

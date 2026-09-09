@@ -8,4 +8,72 @@
 
 body {
   margin: 0;
+  font-family: system-ui, sans-serif;
+}
+
+.passport {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.passport__header {
+  margin-bottom: 1.5rem;
+}
+
+.passport__progress {
+  font-weight: 600;
+  color: #2f6f4f;
+}
+
+.passport__error {
+  color: #b3261e;
+}
+
+.passport__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.park-card {
+  position: relative;
+  text-align: left;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.park-card--visited {
+  border-color: #2f6f4f;
+  background: #eaf5ee;
+}
+
+.park-card__stamp {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #2f6f4f;
+}
+
+.park-card__name {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+}
+
+.park-card__states {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.park-card__date {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  color: #2f6f4f;
 }

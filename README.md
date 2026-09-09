@@ -8,6 +8,8 @@ Full spec: [docs/spec.md](docs/spec.md)
 
 ✅ Phase 0 complete — FastAPI + React + Postgres scaffolded and verified end-to-end. See [docs/phase0-notes.md](docs/phase0-notes.md) for scaffolding decisions.
 
+🚧 Phase 1 in progress — park data + passport (load all 63 National Parks, mark visited, see stamps). See [docs/phase1-notes.md](docs/phase1-notes.md).
+
 ## Stack
 
 - **Backend:** Python + FastAPI
@@ -46,10 +48,14 @@ See [docs/spec.md](docs/spec.md) §7 for details on each phase.
 ```bash
 docker compose up -d db
 
-cd backend && uv sync && cp .env.example .env && uv run uvicorn app.main:app --reload
+cd backend && uv sync && cp .env.example .env && uv run alembic upgrade head && uv run uvicorn app.main:app --reload
 # in another terminal
 cd frontend && nvm use && npm install && cp .env.example .env && npm run dev
+# optional, one-off: load the 63 parks (needs a free NPS API key — see ingestion/README.md)
+cd ingestion && uv sync && cp .env.example .env && uv run python load_parks.py
 ```
 
-Visit `http://localhost:5173` — should show both health checks as `ok`.
-See `backend/README.md` and `frontend/README.md` for prerequisites and full command reference.
+Visit `http://localhost:5173` — the passport grid should load (empty of parks until
+you run the ingestion step above).
+See `backend/README.md`, `frontend/README.md`, and `ingestion/README.md` for prerequisites
+and full command reference.
