@@ -44,18 +44,24 @@ actually broken). Verified:
   (expected and correct, since no Postgres is reachable in this sandbox —
   see the Docker note below)
 
-## Open item — needs your input
+## Full-stack verification (done — on your machine)
 
-**Docker is not available inside this sandboxed session** (`dockerd` exists but can't start — `ulimit: Operation not permitted`, consistent with a container that doesn't allow nested privileged Docker). This means I could not run `docker compose up -d db` here to verify Postgres connectivity end-to-end.
+Docker was not available inside the sandboxed session used to build this
+(`dockerd` exists but can't start there — `ulimit: Operation not permitted`,
+consistent with a container that doesn't allow nested privileged Docker), so
+`docker compose up -d db` could only be verified by inspection at that point.
 
-`docker-compose.yml` is written and reviewed for correctness, but **only verified by inspection, not by actually running it.** You'll need to run this yourself (or in an environment where Docker works) to confirm the full loop:
+You then ran the full loop locally and confirmed it end-to-end:
+`docker compose up -d db` → backend (`uv run uvicorn`) → frontend
+(`npm run dev`) → `http://localhost:5173` shows **"Backend API: ok"** and
+**"Database (via backend): ok"**. Phase 0's "done when" bar (§7 of the spec)
+is met.
 
-```bash
-docker compose up -d db
-cd backend && uv sync && cp .env.example .env && uv run uvicorn app.main:app --reload
-# in another terminal
-cd frontend && npm install && cp .env.example .env && npm run dev
-# visit http://localhost:5173 — should show "Backend API: ok" and "Database (via backend): ok"
-```
-
-Let me know if that doesn't work as expected and I'll adjust.
+Two environment issues surfaced along the way, both now fixed in the repo
+rather than just worked around once:
+- A flaky/IPv6-broken path to `files.pythonhosted.org` blocked `uv sync` —
+  environment-specific, not a repo issue; see git history for the
+  troubleshooting if it recurs.
+- Node 24 crashes with a `dyld` symbol error on macOS below 13.5. Pinned the
+  frontend to Node 20 via `.nvmrc` + `package.json` `engines` — see
+  `frontend/README.md` Prerequisites.

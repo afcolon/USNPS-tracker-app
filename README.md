@@ -6,7 +6,7 @@ Full spec: [docs/spec.md](docs/spec.md)
 
 ## Status
 
-🚧 Phase 0 — project scaffolding. No app code yet.
+✅ Phase 0 complete — FastAPI + React + Postgres scaffolded and verified end-to-end. See [docs/phase0-notes.md](docs/phase0-notes.md) for scaffolding decisions.
 
 ## Stack
 
@@ -43,4 +43,13 @@ See [docs/spec.md](docs/spec.md) §7 for details on each phase.
 
 ## Getting started
 
-Setup instructions will be added once Phase 0 scaffolding (FastAPI + React + Postgres wiring) is in place.
+```bash
+docker compose up -d db
+
+cd backend && uv sync && cp .env.example .env && uv run uvicorn app.main:app --reload
+# in another terminal
+cd frontend && nvm use && npm install && cp .env.example .env && npm run dev
+```
+
+Visit `http://localhost:5173` — should show both health checks as `ok`.
+See `backend/README.md` and `frontend/README.md` for prerequisites and full command reference.
