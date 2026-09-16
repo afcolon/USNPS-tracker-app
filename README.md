@@ -8,7 +8,7 @@ Full spec: [docs/spec.md](docs/spec.md)
 
 ✅ Phase 0 complete — FastAPI + React + Postgres scaffolded and verified end-to-end. See [docs/phase0-notes.md](docs/phase0-notes.md) for scaffolding decisions.
 
-🚧 Phase 1 in progress — park data + passport (load all 63 National Parks, mark visited, see stamps). See [docs/phase1-notes.md](docs/phase1-notes.md).
+✅ Phase 1 complete — all 63 National Parks load from the NPS API, mark visited, see stamps. Verified end-to-end against real Postgres + a real NPS API key. See [docs/phase1-notes.md](docs/phase1-notes.md).
 
 ## Stack
 

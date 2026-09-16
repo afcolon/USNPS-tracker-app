@@ -85,8 +85,9 @@ had to be verified on real hardware instead:
   un-pinned terminal) crashes Vite 8/rolldown with a `styleText` `SyntaxError` —
   `util.styleText` needs Node 20.12+. Fixed by running `nvm use` (reads `.nvmrc`) before
   `npm run dev`.
-- ⬜ **Marking/unmarking a park visited** (click a card, stamp + counter update, persists
-  on refresh) — grid loading is confirmed, this specific interaction isn't yet.
+- ✅ **Marking a park visited persists** — confirmed: clicked a card, stamp appeared, and it
+  survived a full page refresh (2026-09-16), meaning the write actually reached Postgres
+  and the read-back correctly reflects it, not just optimistic client-side state.
 
-Once the last item's confirmed, all three of spec §7's Phase 1 pieces (park data loaded,
-mark visited, see stamps) will be verified against real Postgres + a real NPS API key.
+Phase 1 is done — all three of spec §7's Phase 1 pieces (park data loaded, mark visited,
+see stamps) are verified against real Postgres + a real NPS API key, not just unit tests.
