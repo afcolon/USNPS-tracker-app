@@ -80,8 +80,13 @@ had to be verified on real hardware instead:
   ingestion upsert below succeeded, which requires the `parks` table to already exist).
 - ✅ **`ingestion/load_parks.py` against a real NPS API key** — confirmed producing exactly
   63 rows and upserting into Postgres with no errors (2026-09-16).
-- ⬜ **The passport grid** actually loading all 63 parks and toggling visited/unvisited in
-  the browser against a real backend + DB — not yet checked.
+- ✅ **The passport grid loads all 63 parks** in the browser against a real backend + DB —
+  confirmed (2026-09-16). Also hit along the way, unrelated to this app: Node 18 (an
+  un-pinned terminal) crashes Vite 8/rolldown with a `styleText` `SyntaxError` —
+  `util.styleText` needs Node 20.12+. Fixed by running `nvm use` (reads `.nvmrc`) before
+  `npm run dev`.
+- ⬜ **Marking/unmarking a park visited** (click a card, stamp + counter update, persists
+  on refresh) — grid loading is confirmed, this specific interaction isn't yet.
 
-Next: run the frontend (`cd frontend && npm install && npm run dev`) and confirm
-`http://localhost:5173` shows a 63-card grid and that clicking a card toggles its stamp.
+Once the last item's confirmed, all three of spec §7's Phase 1 pieces (park data loaded,
+mark visited, see stamps) will be verified against real Postgres + a real NPS API key.
