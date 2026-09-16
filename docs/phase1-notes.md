@@ -71,17 +71,17 @@ can mark visited, sees stamps."*
   from Phase 0 still exist on the backend (useful for ops), but the frontend's home page
   now shows the passport grid instead of the Phase 0 health-check text.
 
-## Full-stack verification — needs you
+## Full-stack verification
 
-Same Docker constraint as Phase 0: this sandbox can't run Postgres, so the following is
-**verified by code inspection and unit tests only, not a real end-to-end run**:
+Same Docker constraint as Phase 0: this sandbox can't run Postgres itself, so the following
+had to be verified on real hardware instead:
 
-- `alembic upgrade head` against a real Postgres (creates tables, seeds the user)
-- `ingestion/load_parks.py` producing exactly 63 rows and successfully upserting them into
-  Postgres — the *filtering* logic (60 → 63) is verified against the real NPS API and unit
-  tested, but the fixed version hasn't yet been re-run end-to-end against a real key to
-  confirm the final count and that the upsert into Postgres works
-- The passport grid actually loading parks and toggling visited/unvisited against a real
-  backend + DB
+- ✅ **`alembic upgrade head` against real Postgres** — confirmed working (implicitly: the
+  ingestion upsert below succeeded, which requires the `parks` table to already exist).
+- ✅ **`ingestion/load_parks.py` against a real NPS API key** — confirmed producing exactly
+  63 rows and upserting into Postgres with no errors (2026-09-16).
+- ⬜ **The passport grid** actually loading all 63 parks and toggling visited/unvisited in
+  the browser against a real backend + DB — not yet checked.
 
-Steps are in the root README's "Getting started". Let me know what you see and I'll adjust.
+Next: run the frontend (`cd frontend && npm install && npm run dev`) and confirm
+`http://localhost:5173` shows a 63-card grid and that clicking a card toggles its stamp.
