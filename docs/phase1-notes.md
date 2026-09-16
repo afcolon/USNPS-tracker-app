@@ -35,19 +35,28 @@ can mark visited, sees stamps."*
   column), which is an acceptable failure mode at this scale. `ingestion/.env` uses a plain
   `postgresql://` URL (sync `psycopg`) — note this differs from `backend/.env`'s
   `postgresql+asyncpg://` for the *same* database.
-- **Designation filter:** NPS API units are filtered by `"National Park" in designation`
-  rather than an exact-match, since several official National Parks (Denali,
-  Wrangell–St. Elias, Gates of the Arctic, Kobuk Valley, Great Sand Dunes) carry the
-  designation **"National Park & Preserve"**, not a bare "National Park". The script logs
-  the count and warns to stderr (with the actual distinct designations found) if the
-  result isn't exactly 63, so a schema change on NPS's end is loud, not silent.
-- **NPS API response shape is unverified.** This sandbox can't reach `nps.gov` at all
-  (egress-blocked), so `ingestion/load_parks.py`'s field names (`parkCode`, `fullName`,
-  `designation`, `latitude`/`longitude`, pagination via `limit`/`start`/`total`) come from
-  the NPS Data API's documented schema, not a live call. **Please sanity-check the printed
-  park count (should read 63) and skim a couple of park names the first time you run this
-  against your real API key** — if NPS has changed field names since, the script will
-  KeyError clearly rather than silently loading garbage.
+- **Designation filter, verified against the real API (2026-09-16):** filtering on
+  `"National Park" in designation` alone gave **60**, not 63. Three real-world quirks
+  needed fixing, confirmed against a live NPS API key:
+  - **`npsa` (American Samoa)** — NPS leaves `designation` blank for this one. Special-cased
+    by park code (`MANUAL_INCLUDE_PARK_CODES` in `load_parks.py`) rather than trusting
+    `designation`.
+  - **`redw` (Redwood)** — officially *"Redwood National and State Parks"*; the word order
+    means the substring `"National Park"` never appears at all, in either `designation` or
+    `fullName`. Same manual-include fix.
+  - **`seki` (Sequoia & Kings Canyon)** — NPS represents these as **one combined API
+    record** (`designation: "National Parks"`, plural), but they're officially counted as
+    2 separate parks everywhere, including this app's own "X of 63" passport framing. This
+    was a real design decision (confirmed with you): `expand_combined_parks()` splits the
+    one API record into two synthetic `Park` rows (`seki-sequoia` / `seki-kings`) with a
+    made-up park code, sharing the original record's description/coordinates/states, since
+    NPS doesn't provide separate ones. The alternative (keep it as one combined entry) would
+    have permanently capped the passport at 62/63.
+  - Also confirmed **not** part of the 63 despite "National Park" in their names, correctly
+    excluded: `npnh` (National Parks of New York Harbor — an administrative grouping of NYC
+    sites) and `wotr` (Wolf Trap National Park for the Performing Arts — a concert venue).
+  - With all three fixes, filtering + expansion produces exactly 63. The script still warns
+    to stderr if the count isn't 63, so a future NPS API change is loud, not silent.
 - **No date/notes UI yet.** The API already supports optional `visited_date`/`notes` per
   visit (per spec §2.1/§6), but the Phase 1 grid just toggles visited on/off using today's
   date automatically on click — no date picker or notes field in the UI yet. Keeps the v1
@@ -68,8 +77,10 @@ Same Docker constraint as Phase 0: this sandbox can't run Postgres, so the follo
 **verified by code inspection and unit tests only, not a real end-to-end run**:
 
 - `alembic upgrade head` against a real Postgres (creates tables, seeds the user)
-- `ingestion/load_parks.py` against a real NPS API key (count should be 63 — see warning
-  above if it isn't)
+- `ingestion/load_parks.py` producing exactly 63 rows and successfully upserting them into
+  Postgres — the *filtering* logic (60 → 63) is verified against the real NPS API and unit
+  tested, but the fixed version hasn't yet been re-run end-to-end against a real key to
+  confirm the final count and that the upsert into Postgres works
 - The passport grid actually loading parks and toggling visited/unvisited against a real
   backend + DB
 

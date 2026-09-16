@@ -38,9 +38,23 @@ def fetch_all_parks() -> list[dict]:
     return parks
 
 
-# NPS's API leaves `designation` blank for American Samoa even though it's one of
-# the 63 official National Parks -- designation alone can't be trusted for it.
-DESIGNATION_OVERRIDE_PARK_CODES = {"npsa"}
+# Two of the 63 official National Parks don't match on designation/name text:
+# - npsa (American Samoa): NPS leaves `designation` blank for this one.
+# - redw (Redwood): officially "Redwood National and State Parks" -- the word
+#   order means the substring "National Park" never appears in the full name.
+MANUAL_INCLUDE_PARK_CODES = {"npsa", "redw"}
+
+# NPS represents Sequoia and Kings Canyon as a single combined API record
+# (parkCode "seki", designation "National Parks"), but they're officially
+# counted as 2 separate parks in every published "63 National Parks" list,
+# including this app's own passport (see docs/phase1-notes.md). Split the one
+# API record into two synthetic entries so the passport can reach a true 63/63.
+COMBINED_PARK_SPLITS = {
+    "seki": [
+        {"parkCode": "seki-sequoia", "fullName": "Sequoia National Park"},
+        {"parkCode": "seki-kings", "fullName": "Kings Canyon National Park"},
+    ]
+}
 
 
 def filter_national_parks(all_parks: list[dict]) -> list[dict]:
@@ -48,8 +62,19 @@ def filter_national_parks(all_parks: list[dict]) -> list[dict]:
         p
         for p in all_parks
         if "National Park" in p.get("designation", "")
-        or p.get("parkCode") in DESIGNATION_OVERRIDE_PARK_CODES
+        or p.get("parkCode") in MANUAL_INCLUDE_PARK_CODES
     ]
+
+
+def expand_combined_parks(national_parks: list[dict]) -> list[dict]:
+    expanded = []
+    for p in national_parks:
+        splits = COMBINED_PARK_SPLITS.get(p.get("parkCode"))
+        if splits is None:
+            expanded.append(p)
+        else:
+            expanded.extend({**p, **split} for split in splits)
+    return expanded
 
 
 def upsert_parks(national_parks: list[dict]) -> None:
@@ -83,8 +108,8 @@ def main() -> None:
     all_parks = fetch_all_parks()
     print(f"Fetched {len(all_parks)} total park units.")
 
-    national_parks = filter_national_parks(all_parks)
-    print(f'Filtered to {len(national_parks)} designated as "National Park" (expected: 63).')
+    national_parks = expand_combined_parks(filter_national_parks(all_parks))
+    print(f"Filtered to {len(national_parks)} National Parks (expected: 63).")
     if len(national_parks) != 63:
         print(
             "WARNING: expected exactly 63 — the designation filter may need adjusting. "
