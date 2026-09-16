@@ -38,8 +38,18 @@ def fetch_all_parks() -> list[dict]:
     return parks
 
 
+# NPS's API leaves `designation` blank for American Samoa even though it's one of
+# the 63 official National Parks -- designation alone can't be trusted for it.
+DESIGNATION_OVERRIDE_PARK_CODES = {"npsa"}
+
+
 def filter_national_parks(all_parks: list[dict]) -> list[dict]:
-    return [p for p in all_parks if "National Park" in p.get("designation", "")]
+    return [
+        p
+        for p in all_parks
+        if "National Park" in p.get("designation", "")
+        or p.get("parkCode") in DESIGNATION_OVERRIDE_PARK_CODES
+    ]
 
 
 def upsert_parks(national_parks: list[dict]) -> None:
