@@ -42,3 +42,48 @@ class VisitedPark(Base):
 
     user: Mapped[User] = relationship(back_populates="visits")
     park: Mapped[Park] = relationship(back_populates="visits")
+
+
+class Hike(Base):
+    __tablename__ = "hikes"
+    __table_args__ = (UniqueConstraint("source", "source_id", name="uq_hikes_source_source_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    park_id: Mapped[int] = mapped_column(ForeignKey("parks.id"))
+    name: Mapped[str]
+    distance_miles: Mapped[float]
+    elevation_gain_ft: Mapped[float]
+    difficulty: Mapped[str]
+    """NPS's 3-tier scale (easy/moderate/strenuous) -- computed via the §3.2.1
+    formula unless difficulty_override is set."""
+    difficulty_score: Mapped[float]
+    difficulty_override: Mapped[str | None]
+    """Set when the computed score misleads (e.g. exposure/scrambling the
+    distance+elevation formula can't see) -- see docs/phase2-notes.md."""
+    difficulty_override_reason: Mapped[str | None] = mapped_column(Text)
+    hike_type: Mapped[str]
+    """loop / out_and_back / point_to_point"""
+    trailhead_lat: Mapped[float]
+    trailhead_lng: Mapped[float]
+    estimated_duration_min: Mapped[int | None]
+    source: Mapped[str]
+    """osm_computed / nps_gis / manual / alltrails -- see docs/phase2-notes.md
+    for why alltrails is here despite docs/spec.md §3.2 ruling it out."""
+    source_id: Mapped[str]
+    """The source's own identifier for this hike (e.g. an AllTrails trail id),
+    so re-running a loader upserts instead of duplicating."""
+    source_url: Mapped[str | None]
+
+    park: Mapped[Park] = relationship()
+    highlights: Mapped[list["HikeHighlight"]] = relationship(back_populates="hike")
+
+
+class HikeHighlight(Base):
+    __tablename__ = "hike_highlights"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    hike_id: Mapped[int] = mapped_column(ForeignKey("hikes.id"))
+    text: Mapped[str] = mapped_column(Text)
+    source_url: Mapped[str | None]
+
+    hike: Mapped[Hike] = relationship(back_populates="highlights")

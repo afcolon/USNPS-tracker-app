@@ -1,10 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.db import DbSession
-from app.models import Park, User, VisitedPark
-from app.schemas import ParkOut, VisitIn
+from app.models import Hike, Park, User, VisitedPark
+from app.schemas import HikeOut, ParkOut, VisitIn
 
 router = APIRouter(tags=["parks"])
 
@@ -71,3 +72,18 @@ async def unmark_visited(park_id: int, db: DbSession) -> None:
     if visit is not None:
         await db.delete(visit)
         await db.commit()
+
+
+@router.get("/parks/{park_id}/hikes")
+async def list_hikes(park_id: int, db: DbSession) -> list[HikeOut]:
+    park = await db.get(Park, park_id)
+    if park is None:
+        raise HTTPException(status_code=404, detail="Park not found")
+
+    result = await db.execute(
+        select(Hike)
+        .where(Hike.park_id == park_id)
+        .options(selectinload(Hike.highlights))
+        .order_by(Hike.distance_miles)
+    )
+    return list(result.scalars().all())

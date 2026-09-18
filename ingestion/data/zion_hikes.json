@@ -1,0 +1,81 @@
+{
+  "park_code": "zion",
+  "source": "alltrails",
+  "hikes": [
+    {
+      "source_id": "10014357",
+      "name": "Canyon Overlook Trail",
+      "distance_miles": 1.0,
+      "elevation_gain_ft": 213,
+      "hike_type": "out_and_back",
+      "estimated_duration_min": 45,
+      "difficulty_override": null,
+      "source_url": "https://www.alltrails.com/trail/us/utah/canyon-overlook-trail",
+      "highlights": [
+        "Short, easy path with sweeping views of Zion Canyon, the Towers of the Virgin, and the Great Arch.",
+        "Passes through a shaded grotto and over slickrock before reaching the cliff-edge overlook.",
+        "Requires a private vehicle -- the shuttle doesn't stop at this trailhead."
+      ]
+    },
+    {
+      "source_id": "10027395",
+      "name": "The Narrows: Riverside Walk",
+      "distance_miles": 2.1,
+      "elevation_gain_ft": 433,
+      "hike_type": "out_and_back",
+      "estimated_duration_min": 75,
+      "difficulty_override": null,
+      "source_url": "https://www.alltrails.com/trail/us/utah/the-zion-narrows-riverside-walk",
+      "highlights": [
+        "Paved, wheelchair-accessible path along the Virgin River to the mouth of Zion's famous slot canyon.",
+        "Ends at a sandy beach where hikers can wade in before continuing (unmaintained) into The Narrows proper.",
+        "Reachable only by shuttle during peak season (Feb-Nov)."
+      ]
+    },
+    {
+      "source_id": "10011474",
+      "name": "Emerald Pools Trail",
+      "distance_miles": 3.0,
+      "elevation_gain_ft": 583,
+      "hike_type": "loop",
+      "estimated_duration_min": 105,
+      "difficulty_override": null,
+      "source_url": "https://www.alltrails.com/trail/us/utah/emerald-pools-trail",
+      "highlights": [
+        "Loop past three pools and seasonal waterfalls, starting at Zion Lodge.",
+        "Family-friendly and heavily trafficked; rocky sections near the Upper Pool are a common source of minor injuries."
+      ]
+    },
+    {
+      "source_id": "10006571",
+      "name": "Angels Landing Trail",
+      "distance_miles": 4.8,
+      "elevation_gain_ft": 1745,
+      "hike_type": "out_and_back",
+      "estimated_duration_min": null,
+      "difficulty_override": "strenuous",
+      "difficulty_override_reason": "Distance/elevation alone compute to Moderate, but the final half-mile is a chain-assisted Class 3 scramble with major fall exposure on both sides -- NPS itself rates this Strenuous. Textbook manual-override case per docs/spec.md §3.2.1.",
+      "source_url": "https://www.alltrails.com/trail/us/utah/angels-landing-trail",
+      "highlights": [
+        "Zion's most iconic and most popular hike -- the final half-mile follows a chain-assisted spine with steep exposure on both sides.",
+        "Requires an advance lottery permit to hike past Scout Lookout.",
+        "Includes Walter's Wiggles, 21 switchbacks named for Zion's first superintendent."
+      ]
+    },
+    {
+      "source_id": "10413986",
+      "name": "Observation Point via Stave Spring Trailhead",
+      "distance_miles": 9.5,
+      "elevation_gain_ft": 2188,
+      "hike_type": "out_and_back",
+      "estimated_duration_min": 345,
+      "difficulty_override": null,
+      "source_url": "https://www.alltrails.com/trail/us/utah/observation-point-via-stave-spring-trailhead",
+      "highlights": [
+        "The current route to Observation Point since the classic East Rim approach closed after a 2019 rockfall.",
+        "Long, quiet, high-desert hike ending about 700 ft above Angels Landing itself.",
+        "Requires a rough access road; many 2WD vehicles park a quarter-mile short of the trailhead."
+      ]
+    }
+  ]
+}

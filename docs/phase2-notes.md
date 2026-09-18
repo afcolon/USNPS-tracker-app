@@ -1,0 +1,123 @@
+# Phase 2 — Hike Data (Pilot Park) Notes
+
+Spec §7 defines "done" for Phase 2 as: *"Hikes for one park manually entered with
+full stats + highlights."* Pilot park: **Zion**.
+
+## Decisions made with you (confirmed via prompts)
+
+| Area | Choice | Why |
+|---|---|---|
+| Pilot park | Zion | Small, well-documented trail system; good spread of difficulty levels. |
+| Data source | AllTrails, via its MCP connector | Reverses spec §8 decision #2 ("avoided AllTrails... ToS blocks automated collection"). See below for exactly what changed and what didn't. |
+
+### The AllTrails reversal, precisely
+
+The original decision avoided AllTrails because scraping it violates their ToS.
+This session's AllTrails MCP connector is **not** the same thing as scraping, but
+it's also not quite "using your own account" either — worth being precise about,
+since you okayed this after I flagged the nuance:
+
+- The connector is `isAuthless: true` — it does **not** authenticate as your
+  personal AllTrails account. It's a sanctioned MCP integration, but access
+  isn't mediated through your login/credentials the way e.g. a Gmail connector
+  would be.
+- I don't have visibility into AllTrails' specific terms around **storing**
+  data pulled via this connector into a separate database long-term (vs.
+  displaying it live) — I can't fetch their ToS page (no web access in this
+  sandbox) to check. For a small personal/portfolio dataset (5 hikes, 1 park)
+  this seems like a reasonable risk to accept, but it's a decision you made
+  with that gap named, not one I resolved.
+- Practically: added `"alltrails"` as a new legitimate value for `Hike.source`,
+  alongside the spec's original `osm_computed`/`nps_gis`/`manual` enum.
+
+### Architecture consequence: curation is interactive, loading is a script
+
+The AllTrails MCP tools only exist inside an interactive Claude session — a
+standalone script (like `load_parks.py`) can't call them; there's no exported
+API key or HTTP endpoint, just this session's live MCP connection. So the
+workflow here is necessarily two steps:
+
+1. **Curation (done once, interactively, this session):** searched AllTrails
+   for 5 well-known Zion trails spanning difficulty levels, pulled full details
+   (stats, description, reviews) via `get_trail_details`, and hand-wrote the
+   result as `ingestion/data/zion_hikes.json` — a versioned, human-reviewable
+   snapshot, not a live dependency.
+2. **Loading (repeatable, scripted):** `ingestion/load_hikes.py` reads that
+   JSON and upserts it into Postgres, same pattern as `load_parks.py`.
+
+This also means: to add hikes for a *different* park later, someone (me, in an
+interactive session, or you) needs to redo step 1 — there's no "just run the
+script with a different park code" path the way `load_parks.py` works against
+the live NPS API.
+
+## Implementation decisions made without asking (documented for easy tweaking)
+
+- **AllTrails doesn't expose trailhead coordinates** through any of its 3
+  tools (`search_trails_by_name`, `find_trails_near_location`,
+  `get_trail_details`) — only a `trail_head_distance_meters` *from a query
+  point*, never the trailhead's own lat/lng. Rather than guess or fabricate
+  coordinates, `load_hikes.py` reuses **the park's own centroid** (already in
+  the `parks` table from Phase 1) for every hike's `trailhead_lat`/`lng`. This
+  is honest-but-imprecise placeholder data — real per-trailhead coordinates
+  were always slated to come from OSM/NPS GIS data per spec §2.3 anyway, so
+  this doesn't actually change the long-term plan, just makes explicit that
+  it isn't done yet. Don't trust these coordinates for anything distance-
+  sensitive (e.g. Phase 4's travel-time work) until that pass happens.
+- **Angels Landing needed a difficulty override.** The §3.2.1 formula
+  (`sqrt(elevation_ft × 2 × distance_mi)`) computes 129.4 → **Moderate** for
+  Angels Landing (4.8 mi, 1,745 ft). But it's universally rated **Strenuous**
+  — the danger is the final half-mile's chain-assisted Class 3 scramble with
+  major fall exposure, which a distance/elevation formula structurally can't
+  see. This is exactly the "manual-override case" the spec's own mismatch
+  table anticipated. Set `difficulty_override = "strenuous"`, and added a new
+  `difficulty_override_reason` text column (not in the original §6 sketch) so
+  the "why" is queryable, not just a code comment.
+- **`estimated_duration_min` is null for Angels Landing.** AllTrails gave no
+  duration estimate for it (unusual, but that's what the data returned) —
+  left null rather than fabricating one.
+- **Highlights have no stable ID to upsert against** (they're short authored
+  blurbs, not sourced from a per-highlight API field with an ID). `load_hikes.py`
+  deletes and re-inserts all of a hike's highlights on every run instead of
+  trying to diff them — safe to re-run, but means any manual highlight edits
+  made directly in the DB would be wiped by a future reload from the JSON file.
+- **Migration hand-written, not autogenerated** — same reason as Phase 1's
+  first migration: no live DB in this sandbox to diff against. Verified via
+  `alembic upgrade head --sql` (offline mode).
+- **Tests use in-memory SQLite** with a shared `conftest.py` (extracted from
+  Phase 1's single-file fixture now that a second test file needs the same
+  setup) — same reasoning as Phase 1: no real Postgres here to test against.
+
+## What Phase 2 deliberately does NOT include
+
+- **No OSM/USGS computed-stats pipeline.** Spec §3.2 designates that as the
+  eventual *primary* approach, but the phase table (§7) scopes Phase 2 as
+  curated/manual for one pilot park specifically, deferring "decide on
+  curation vs. aggregation approach" to Phase 5. This phase followed that
+  literally — AllTrails-curated is a stand-in for "manual," not an attempt at
+  the computed pipeline.
+- **No frontend UI for hikes yet.** Phase 2's spec "done when" bar is a data
+  goal (hikes loaded with stats + highlights), not a UI goal — unlike Phase 1,
+  which explicitly needed a UI to show stamps. Right now the only way to see
+  this data is a direct DB query or hitting `GET /parks/{id}/hikes`. Given
+  Phase 1 shipped model+API+UI together, this is worth confirming rather than
+  assuming: do you want a minimal "view hikes" page now, or is that natural to
+  leave for Phase 3 (the trip planner), which is the first phase that actually
+  needs to display hikes to be useful?
+
+## Full-stack verification — needs you
+
+Same Docker constraint as every prior phase: this sandbox can't run Postgres.
+Verified so far only by unit tests + `--sql` migration dry-run:
+
+- ⬜ `alembic upgrade head` creating the `hikes`/`hike_highlights` tables
+- ⬜ `uv run python load_hikes.py data/zion_hikes.json` against real Postgres —
+  should print 5 lines (one per hike) ending "Loaded 5 hikes for zion.", with
+  Angels Landing showing `strenuous (score 129.4)` and no other warnings
+- ⬜ `GET /parks/{zion_id}/hikes` returning all 5 with highlights populated
+
+Steps once you're ready:
+```bash
+cd backend && uv run alembic upgrade head
+cd ../ingestion && uv run python load_hikes.py data/zion_hikes.json
+# then hit http://localhost:8000/parks/<zion's id>/hikes
+```
