@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # One-off data loading: all 63 National Parks, then pilot hike data for Zion.
 # Requires Postgres running and migrated (scripts/dev.sh, or at least
-# `docker compose up -d db` + `cd backend && uv run alembic upgrade head`),
+# `docker compose up -d --wait db` + `cd backend && uv run alembic upgrade head`),
 # and ingestion/.env set up with a real NPS_API_KEY (see ingestion/README.md).
 
 set -euo pipefail

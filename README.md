@@ -49,7 +49,9 @@ See [docs/spec.md](docs/spec.md) §7 for details on each phase.
 
 **One-time setup:**
 ```bash
-docker compose up -d db   # alembic upgrade below needs Postgres already running
+docker compose up -d --wait db   # --wait: block until Postgres passes its healthcheck,
+                                 # not just until the container starts (alembic below
+                                 # connects immediately and won't retry)
 
 cd backend && uv sync && cp .env.example .env && uv run alembic upgrade head && cd ..
 cd frontend && nvm use && npm install && cp .env.example .env && cd ..
@@ -63,7 +65,7 @@ cd ingestion && uv sync && cp .env.example .env && cd ..   # add your NPS_API_KE
 ```
 
 **Load data** (one-off, after Postgres is up — `./scripts/dev.sh` in another terminal,
-or just `docker compose up -d db`): loads all 63 National Parks + pilot hike data for Zion.
+or just `docker compose up -d --wait db`): loads all 63 National Parks + pilot hike data for Zion.
 ```bash
 ./scripts/load-data.sh
 ```

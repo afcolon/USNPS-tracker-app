@@ -31,7 +31,7 @@ cleanup() {
 trap cleanup INT TERM EXIT
 
 echo "==> Starting Postgres (docker compose)..."
-docker compose up -d db
+docker compose up -d --wait db
 
 echo "==> Starting backend (http://localhost:8000)..."
 (cd backend && uv run uvicorn app.main:app --reload) 2>&1 | sed -u 's/^/[backend]  /' &
