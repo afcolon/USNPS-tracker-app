@@ -47,17 +47,26 @@ See [docs/spec.md](docs/spec.md) §7 for details on each phase.
 
 ## Getting started
 
+**One-time setup:**
 ```bash
-docker compose up -d db
-
-cd backend && uv sync && cp .env.example .env && uv run alembic upgrade head && uv run uvicorn app.main:app --reload
-# in another terminal
-cd frontend && nvm use && npm install && cp .env.example .env && npm run dev
-# optional, one-off: load the 63 parks (needs a free NPS API key — see ingestion/README.md)
-cd ingestion && uv sync && cp .env.example .env && uv run python load_parks.py
+cd backend && uv sync && cp .env.example .env && uv run alembic upgrade head && cd ..
+cd frontend && nvm use && npm install && cp .env.example .env && cd ..
+cd ingestion && uv sync && cp .env.example .env && cd ..   # add your NPS_API_KEY
 ```
 
-Visit `http://localhost:5173` — the passport grid should load (empty of parks until
-you run the ingestion step above).
+**Every time — one command** starts Postgres, the backend, and the frontend together
+(Ctrl-C stops all three):
+```bash
+./scripts/dev.sh
+```
+
+**Load data** (one-off, after Postgres is up — `./scripts/dev.sh` in another terminal,
+or just `docker compose up -d db`): loads all 63 National Parks + pilot hike data for Zion.
+```bash
+./scripts/load-data.sh
+```
+
+Visit `http://localhost:5173` — the passport grid should show all 63 parks once
+`load-data.sh` has run.
 See `backend/README.md`, `frontend/README.md`, and `ingestion/README.md` for prerequisites
-and full command reference.
+and full command reference (running each component by hand, tests, lint, etc.).
