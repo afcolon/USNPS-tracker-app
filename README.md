@@ -49,6 +49,8 @@ See [docs/spec.md](docs/spec.md) §7 for details on each phase.
 
 **One-time setup:**
 ```bash
+docker compose up -d db   # alembic upgrade below needs Postgres already running
+
 cd backend && uv sync && cp .env.example .env && uv run alembic upgrade head && cd ..
 cd frontend && nvm use && npm install && cp .env.example .env && cd ..
 cd ingestion && uv sync && cp .env.example .env && cd ..   # add your NPS_API_KEY
