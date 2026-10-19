@@ -12,6 +12,8 @@ Full spec: [docs/spec.md](docs/spec.md)
 
 ✅ Phase 2 complete — hike data (stats, difficulty, highlights) for Zion, the pilot park, sourced via the AllTrails MCP connector. Verified end-to-end against real Postgres. See [docs/phase2-notes.md](docs/phase2-notes.md).
 
+🚧 Phase 3 in progress — trip planner v1 (greedy): pick a park + number of days, get a day-by-day hike itinerary. Backend + frontend built, unit tested; real end-to-end verification pending. See [docs/phase3-notes.md](docs/phase3-notes.md).
+
 ## Stack
 
 - **Backend:** Python + FastAPI

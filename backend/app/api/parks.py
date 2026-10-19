@@ -1,23 +1,18 @@
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.db import DbSession
-from app.models import Hike, Park, User, VisitedPark
+from app.deps import get_current_user
+from app.models import Hike, Park, VisitedPark
 from app.schemas import HikeOut, ParkOut, VisitIn
 
 router = APIRouter(tags=["parks"])
 
 
-async def _get_current_user(db: AsyncSession) -> User:
-    result = await db.execute(select(User).order_by(User.id).limit(1))
-    return result.scalar_one()
-
-
 @router.get("/parks")
 async def list_parks(db: DbSession) -> list[ParkOut]:
-    user = await _get_current_user(db)
+    user = await get_current_user(db)
     result = await db.execute(
         select(Park, VisitedPark)
         .outerjoin(
@@ -44,7 +39,7 @@ async def list_parks(db: DbSession) -> list[ParkOut]:
 
 @router.post("/parks/{park_id}/visit", status_code=204)
 async def mark_visited(park_id: int, body: VisitIn, db: DbSession) -> None:
-    user = await _get_current_user(db)
+    user = await get_current_user(db)
 
     park = await db.get(Park, park_id)
     if park is None:
@@ -64,7 +59,7 @@ async def mark_visited(park_id: int, body: VisitIn, db: DbSession) -> None:
 
 @router.delete("/parks/{park_id}/visit", status_code=204)
 async def unmark_visited(park_id: int, db: DbSession) -> None:
-    user = await _get_current_user(db)
+    user = await get_current_user(db)
     result = await db.execute(
         select(VisitedPark).where(VisitedPark.user_id == user.id, VisitedPark.park_id == park_id)
     )

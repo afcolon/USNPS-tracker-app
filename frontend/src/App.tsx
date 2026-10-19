@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchParks, markVisited, unmarkVisited } from './api';
 import { ParkCard } from './components/ParkCard';
+import { TripPlanner } from './components/TripPlanner';
 import type { Park } from './types';
 
 const TOTAL_NATIONAL_PARKS = 63;
@@ -8,6 +9,7 @@ const TOTAL_NATIONAL_PARKS = 63;
 function App() {
   const [parks, setParks] = useState<Park[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [planningPark, setPlanningPark] = useState<Park | null>(null);
 
   useEffect(() => {
     fetchParks()
@@ -28,6 +30,10 @@ function App() {
     }
   }
 
+  if (planningPark) {
+    return <TripPlanner park={planningPark} onBack={() => setPlanningPark(null)} />;
+  }
+
   const visitedCount = parks.filter((p) => p.visited).length;
 
   return (
@@ -45,7 +51,12 @@ function App() {
 
       <div className="passport__grid">
         {parks.map((park) => (
-          <ParkCard key={park.id} park={park} onToggleVisited={handleToggleVisited} />
+          <ParkCard
+            key={park.id}
+            park={park}
+            onToggleVisited={handleToggleVisited}
+            onPlanTrip={setPlanningPark}
+          />
         ))}
       </div>
     </main>

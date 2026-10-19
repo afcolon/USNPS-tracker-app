@@ -93,3 +93,32 @@ class HikeHighlight(Base):
     source_url: Mapped[str | None]
 
     hike: Mapped[Hike] = relationship(back_populates="highlights")
+
+
+class Trip(Base):
+    __tablename__ = "trips"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    park_id: Mapped[int] = mapped_column(ForeignKey("parks.id"))
+    num_days: Mapped[int]
+    created_at: Mapped[datetime.datetime]
+
+    park: Mapped[Park] = relationship()
+    items: Mapped[list["TripItineraryItem"]] = relationship(
+        back_populates="trip",
+        order_by="TripItineraryItem.day_number, TripItineraryItem.order_in_day",
+    )
+
+
+class TripItineraryItem(Base):
+    __tablename__ = "trip_itinerary_items"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    trip_id: Mapped[int] = mapped_column(ForeignKey("trips.id"))
+    hike_id: Mapped[int] = mapped_column(ForeignKey("hikes.id"))
+    day_number: Mapped[int]
+    order_in_day: Mapped[int]
+
+    trip: Mapped[Trip] = relationship(back_populates="items")
+    hike: Mapped[Hike] = relationship()

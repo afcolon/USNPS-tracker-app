@@ -1,4 +1,5 @@
 import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -49,3 +50,24 @@ class HikeOut(BaseModel):
     avg_rating: float | None = None
     reviews_count: int | None = None
     highlights: list[HikeHighlightOut] = []
+
+
+class TripIn(BaseModel):
+    park_id: int
+    num_days: int
+    max_difficulty: Literal["easy", "moderate", "strenuous"] | None = None
+    max_hours_per_day: float = 8.0
+
+
+class TripDayOut(BaseModel):
+    day_number: int
+    hikes: list[HikeOut]
+
+
+class TripOut(BaseModel):
+    id: int
+    park_id: int
+    num_days: int
+    created_at: datetime.datetime
+    warning: str | None = None
+    days: list[TripDayOut]

@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from app.core.db import Base, get_db
 from app.main import app
-from app.models import Park, User
+from app.models import Hike, Park, User
 
 
 @pytest.fixture
@@ -47,3 +47,30 @@ async def seeded_park(session_factory) -> int:
         session.add(park)
         await session.commit()
         return park.id
+
+
+@pytest.fixture
+async def seeded_hike(session_factory, seeded_park: int) -> int:
+    async with session_factory() as session:
+        hike = Hike(
+            park_id=seeded_park,
+            name="Angels Landing Trail",
+            distance_miles=4.8,
+            elevation_gain_ft=1745,
+            difficulty="moderate",
+            difficulty_score=129.4,
+            difficulty_override="strenuous",
+            difficulty_override_reason="Chain-assisted exposure, not distance/elevation.",
+            hike_type="out_and_back",
+            trailhead_lat=37.3,
+            trailhead_lng=-113.0,
+            estimated_duration_min=240,
+            source="alltrails",
+            source_id="10006571",
+            source_url="https://www.alltrails.com/trail/us/utah/angels-landing-trail",
+            avg_rating=4.9,
+            reviews_count=41568,
+        )
+        session.add(hike)
+        await session.commit()
+        return hike.id
