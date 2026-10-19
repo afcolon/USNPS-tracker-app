@@ -88,10 +88,39 @@ no code change needed here when that happens.
   not a route -- consistent with the app having no router at all so far, and
   avoids adding one for what's currently just two views.
 
+## Caught by the pre-merge review (CLAUDE.md convention), before merging
+
+Four real findings from the standing pre-merge review pass, all fixed before
+this branch was merged:
+
+- **A genuine showstopper:** `created_at` was inserted as a timezone-aware
+  datetime (`datetime.now(datetime.UTC)`) into a column declared timezone-naive
+  (`sa.DateTime()`). asyncpg (real Postgres) rejects this outright --
+  `POST /trips` would 500 on every call in production. Completely invisible in
+  the test suite because SQLite doesn't enforce the distinction -- all 21 tests
+  passed while the endpoint was broken for its actual target database. Fixed by
+  declaring the column `DateTime(timezone=True)` in both the migration and the
+  model (confirmed via `alembic upgrade head --sql`: now emits
+  `TIMESTAMP WITH TIME ZONE`).
+- **The thin-coverage warning compared the wrong count.** It checked raw
+  `len(hikes)` against `num_days`, so a park with plenty of hikes that all get
+  filtered out by `max_difficulty` (or don't fit any day's `max_hours_per_day`
+  budget) produced a silently empty itinerary with no warning. Fixed to compare
+  the actually-*scheduled* hike count instead.
+- **Check-then-use race + a redundant query** in `GET /trips/{id}`: it checked
+  existence with `db.get()`, then re-queried the same row via `scalar_one()` in
+  the shared loader, which would 500 instead of 404 if the row vanished between
+  the two calls, and always cost two round trips for one logical read. Merged
+  into a single `scalar_one_or_none()` fetch, reused by both POST and GET.
+- **`num_days` had no validation** -- `POST /trips` with `num_days=0` (or
+  negative) was accepted and silently produced an empty, persisted trip instead
+  of a 422. Added `Field(gt=0, le=30)`; `max_hours_per_day` got the same
+  treatment (`gt=0`).
+
 ## Full-stack verification — needs you
 
 Same Docker constraint as every prior phase: this sandbox can't run Postgres, so
-this is verified by unit tests (21 backend tests, all passing) and a clean
+this is verified by unit tests (22 backend tests, all passing) and a clean
 frontend build/lint/format only, not a real end-to-end run yet:
 
 - ⬜ `alembic upgrade head` creating the `trips`/`trip_itinerary_items` tables

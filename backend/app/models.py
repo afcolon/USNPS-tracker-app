@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Date, ForeignKey, Text, UniqueConstraint
+from sqlalchemy import Date, DateTime, ForeignKey, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base
@@ -102,7 +102,7 @@ class Trip(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     park_id: Mapped[int] = mapped_column(ForeignKey("parks.id"))
     num_days: Mapped[int]
-    created_at: Mapped[datetime.datetime]
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
 
     park: Mapped[Park] = relationship()
     items: Mapped[list["TripItineraryItem"]] = relationship(

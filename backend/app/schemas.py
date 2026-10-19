@@ -1,7 +1,7 @@
 import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ParkOut(BaseModel):
@@ -54,9 +54,9 @@ class HikeOut(BaseModel):
 
 class TripIn(BaseModel):
     park_id: int
-    num_days: int
+    num_days: int = Field(gt=0, le=30)
     max_difficulty: Literal["easy", "moderate", "strenuous"] | None = None
-    max_hours_per_day: float = 8.0
+    max_hours_per_day: float = Field(default=8.0, gt=0)
 
 
 class TripDayOut(BaseModel):

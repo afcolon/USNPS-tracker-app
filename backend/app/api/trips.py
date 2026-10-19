@@ -13,7 +13,7 @@ from app.schemas import TripDayOut, TripIn, TripOut
 router = APIRouter(tags=["trips"])
 
 
-async def _load_trip_out(db: DbSession, trip_id: int, warning: str | None) -> TripOut:
+async def _fetch_trip(db: DbSession, trip_id: int) -> Trip | None:
     result = await db.execute(
         select(Trip)
         .where(Trip.id == trip_id)
@@ -23,8 +23,10 @@ async def _load_trip_out(db: DbSession, trip_id: int, warning: str | None) -> Tr
             .selectinload(Hike.highlights)
         )
     )
-    trip = result.scalar_one()
+    return result.scalar_one_or_none()
 
+
+def _trip_to_out(trip: Trip, warning: str | None) -> TripOut:
     days: dict[int, list] = {day_number: [] for day_number in range(1, trip.num_days + 1)}
     for item in trip.items:
         days[item.day_number].append(item.hike)
@@ -82,17 +84,21 @@ async def create_trip(body: TripIn, db: DbSession) -> TripOut:
     await db.commit()
 
     warning = None
-    if len(hikes) < body.num_days:
+    scheduled_count = sum(len(day) for day in days)
+    if scheduled_count < body.num_days:
         warning = (
-            f"Only {len(hikes)} hike(s) available for this park -- some days may be light or empty."
+            f"Only {len(hikes)} hike(s) available for this park matching your "
+            "preferences -- some days may be light or empty."
         )
 
-    return await _load_trip_out(db, trip.id, warning)
+    trip_row = await _fetch_trip(db, trip.id)
+    assert trip_row is not None  # just committed in this same transaction
+    return _trip_to_out(trip_row, warning)
 
 
 @router.get("/trips/{trip_id}")
 async def get_trip(trip_id: int, db: DbSession) -> TripOut:
-    trip = await db.get(Trip, trip_id)
-    if trip is None:
+    trip_row = await _fetch_trip(db, trip_id)
+    if trip_row is None:
         raise HTTPException(status_code=404, detail="Trip not found")
-    return await _load_trip_out(db, trip_id, warning=None)
+    return _trip_to_out(trip_row, warning=None)

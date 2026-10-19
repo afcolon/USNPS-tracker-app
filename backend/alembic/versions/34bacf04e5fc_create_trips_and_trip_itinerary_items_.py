@@ -26,7 +26,7 @@ def upgrade() -> None:
         sa.Column("user_id", sa.Integer(), sa.ForeignKey("users.id"), nullable=False),
         sa.Column("park_id", sa.Integer(), sa.ForeignKey("parks.id"), nullable=False),
         sa.Column("num_days", sa.Integer(), nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=False),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
     )
 
     op.create_table(

@@ -50,3 +50,14 @@ async def test_create_trip_respects_max_difficulty(
     assert response.status_code == 201
     trip = response.json()
     assert trip["days"] == [{"day_number": 1, "hikes": []}]
+    # Regression check: the warning must reflect hikes actually *scheduled*,
+    # not just the raw count available before difficulty filtering -- a
+    # park with 1 hike but every day empty after filtering must still warn.
+    assert trip["warning"] is not None
+
+
+async def test_create_trip_rejects_non_positive_num_days(
+    client: AsyncClient, seeded_park: int
+) -> None:
+    response = await client.post("/trips", json={"park_id": seeded_park, "num_days": 0})
+    assert response.status_code == 422
