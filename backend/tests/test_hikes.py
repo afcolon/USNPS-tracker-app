@@ -22,6 +22,8 @@ async def _add_hike(session_factory: async_sessionmaker[AsyncSession], park_id: 
             source="alltrails",
             source_id="10006571",
             source_url="https://www.alltrails.com/trail/us/utah/angels-landing-trail",
+            avg_rating=4.9,
+            reviews_count=41568,
         )
         session.add(hike)
         await session.flush()
@@ -42,6 +44,8 @@ async def test_list_hikes_for_park(
     assert hikes[0]["name"] == "Angels Landing Trail"
     assert hikes[0]["difficulty"] == "strenuous"
     assert hikes[0]["difficulty_override"] == "strenuous"
+    assert hikes[0]["avg_rating"] == 4.9
+    assert hikes[0]["reviews_count"] == 41568
     assert hikes[0]["highlights"] == [
         {"text": "Chain-assisted final scramble.", "source_url": None}
     ]

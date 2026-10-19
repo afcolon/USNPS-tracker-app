@@ -57,14 +57,14 @@ def load_hikes(data_path: str) -> None:
                     park_id, name, distance_miles, elevation_gain_ft, difficulty,
                     difficulty_score, difficulty_override, difficulty_override_reason,
                     hike_type, trailhead_lat, trailhead_lng, estimated_duration_min,
-                    source, source_id, source_url
+                    source, source_id, source_url, avg_rating, reviews_count
                 )
                 VALUES (
                     %(park_id)s, %(name)s, %(distance_miles)s, %(elevation_gain_ft)s,
                     %(difficulty)s, %(difficulty_score)s, %(difficulty_override)s,
                     %(difficulty_override_reason)s, %(hike_type)s, %(trailhead_lat)s,
                     %(trailhead_lng)s, %(estimated_duration_min)s, %(source)s,
-                    %(source_id)s, %(source_url)s
+                    %(source_id)s, %(source_url)s, %(avg_rating)s, %(reviews_count)s
                 )
                 ON CONFLICT (source, source_id) DO UPDATE SET
                     name = EXCLUDED.name,
@@ -78,7 +78,9 @@ def load_hikes(data_path: str) -> None:
                     trailhead_lat = EXCLUDED.trailhead_lat,
                     trailhead_lng = EXCLUDED.trailhead_lng,
                     estimated_duration_min = EXCLUDED.estimated_duration_min,
-                    source_url = EXCLUDED.source_url
+                    source_url = EXCLUDED.source_url,
+                    avg_rating = EXCLUDED.avg_rating,
+                    reviews_count = EXCLUDED.reviews_count
                 RETURNING id
                 """,
                 {
@@ -97,6 +99,8 @@ def load_hikes(data_path: str) -> None:
                     "source": default_source,
                     "source_id": h["source_id"],
                     "source_url": h.get("source_url"),
+                    "avg_rating": h.get("avg_rating"),
+                    "reviews_count": h.get("reviews_count"),
                 },
             )
             hike_id = cur.fetchone()[0]

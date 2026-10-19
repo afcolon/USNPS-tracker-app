@@ -73,6 +73,12 @@ class Hike(Base):
     """The source's own identifier for this hike (e.g. an AllTrails trail id),
     so re-running a loader upserts instead of duplicating."""
     source_url: Mapped[str | None]
+    avg_rating: Mapped[float | None]
+    """The source's average user rating (e.g. AllTrails' 0-5 scale), persisted
+    so the "why was this one of the recommended hikes" judgment is auditable
+    data rather than just a one-time subjective pick -- see docs/phase2-notes.md
+    (Phase 5 scope decision: curated/recommended-by-sentiment, not exhaustive)."""
+    reviews_count: Mapped[int | None]
 
     park: Mapped[Park] = relationship()
     highlights: Mapped[list["HikeHighlight"]] = relationship(back_populates="hike")

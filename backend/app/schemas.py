@@ -46,4 +46,6 @@ class HikeOut(BaseModel):
     estimated_duration_min: int | None = None
     source: str
     source_url: str | None = None
+    avg_rating: float | None = None
+    reviews_count: int | None = None
     highlights: list[HikeHighlightOut] = []

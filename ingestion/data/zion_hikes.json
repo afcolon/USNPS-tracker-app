@@ -11,6 +11,8 @@
       "estimated_duration_min": 45,
       "difficulty_override": null,
       "source_url": "https://www.alltrails.com/trail/us/utah/canyon-overlook-trail",
+      "avg_rating": 4.8,
+      "reviews_count": 16709,
       "highlights": [
         "Short, easy path with sweeping views of Zion Canyon, the Towers of the Virgin, and the Great Arch.",
         "Passes through a shaded grotto and over slickrock before reaching the cliff-edge overlook.",
@@ -26,6 +28,8 @@
       "estimated_duration_min": 75,
       "difficulty_override": null,
       "source_url": "https://www.alltrails.com/trail/us/utah/the-zion-narrows-riverside-walk",
+      "avg_rating": 4.6,
+      "reviews_count": 16409,
       "highlights": [
         "Paved, wheelchair-accessible path along the Virgin River to the mouth of Zion's famous slot canyon.",
         "Ends at a sandy beach where hikers can wade in before continuing (unmaintained) into The Narrows proper.",
@@ -41,6 +45,8 @@
       "estimated_duration_min": 105,
       "difficulty_override": null,
       "source_url": "https://www.alltrails.com/trail/us/utah/emerald-pools-trail",
+      "avg_rating": 4.6,
+      "reviews_count": 7295,
       "highlights": [
         "Loop past three pools and seasonal waterfalls, starting at Zion Lodge.",
         "Family-friendly and heavily trafficked; rocky sections near the Upper Pool are a common source of minor injuries."
@@ -56,6 +62,8 @@
       "difficulty_override": "strenuous",
       "difficulty_override_reason": "Distance/elevation alone compute to Moderate, but the final half-mile is a chain-assisted Class 3 scramble with major fall exposure on both sides -- NPS itself rates this Strenuous. Textbook manual-override case per docs/spec.md §3.2.1.",
       "source_url": "https://www.alltrails.com/trail/us/utah/angels-landing-trail",
+      "avg_rating": 4.9,
+      "reviews_count": 41568,
       "highlights": [
         "Zion's most iconic and most popular hike -- the final half-mile follows a chain-assisted spine with steep exposure on both sides.",
         "Requires an advance lottery permit to hike past Scout Lookout.",
@@ -71,6 +79,8 @@
       "estimated_duration_min": 345,
       "difficulty_override": null,
       "source_url": "https://www.alltrails.com/trail/us/utah/observation-point-via-stave-spring-trailhead",
+      "avg_rating": 4.8,
+      "reviews_count": 768,
       "highlights": [
         "The current route to Observation Point since the classic East Rim approach closed after a 2019 rockfall.",
         "Long, quiet, high-desert hike ending about 700 ft above Angels Landing itself.",

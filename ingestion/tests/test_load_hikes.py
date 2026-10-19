@@ -30,6 +30,8 @@ def test_zion_hikes_json_is_well_formed():
     for hike in data["hikes"]:
         assert hike["hike_type"] in {"loop", "out_and_back", "point_to_point"}
         assert hike["highlights"]
+        assert 0 <= hike["avg_rating"] <= 5
+        assert hike["reviews_count"] > 0
 
 
 def test_angels_landing_has_a_documented_override():

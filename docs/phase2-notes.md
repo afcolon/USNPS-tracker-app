@@ -97,12 +97,40 @@ the live NPS API.
   the computed pipeline.
 - **No frontend UI for hikes yet.** Phase 2's spec "done when" bar is a data
   goal (hikes loaded with stats + highlights), not a UI goal — unlike Phase 1,
-  which explicitly needed a UI to show stamps. Right now the only way to see
-  this data is a direct DB query or hitting `GET /parks/{id}/hikes`. Given
-  Phase 1 shipped model+API+UI together, this is worth confirming rather than
-  assuming: do you want a minimal "view hikes" page now, or is that natural to
-  leave for Phase 3 (the trip planner), which is the first phase that actually
-  needs to display hikes to be useful?
+  which explicitly needed a UI to show stamps. Confirmed with you: no need to
+  build this until it's actually necessary (naturally Phase 3, the trip
+  planner, which is the first phase that needs to display hikes to be
+  useful). Right now the only way to see this data is a direct DB query or
+  hitting `GET /parks/{id}/hikes`.
+
+## Phase 5 scope decision: recommended-only, not comprehensive
+
+Settled ahead of time, since it changes how future hike-data work should be
+shaped: when this expands past Zion to more/all parks, hikes are a **curated
+"recommended" subset per park (e.g. top ~8 by rating/popularity, spanning
+difficulty levels)**, not an attempt at cataloging every maintained trail.
+
+The alternative — comprehensive coverage — was ruled out as not actually
+achievable via hand-curation at 63-park scale (some parks have 800+ miles of
+trail; this is only realistic via the originally-planned OSM/USGS computed
+pipeline, a different and much larger project than what Phase 2 built). The
+recommended-only approach also matches what the spec's own recommendation
+engine design already assumes (§5: *"filter hikes by difficulty preference,
+sort by some blend of 'highlight quality' and duration"* — phrasing that only
+makes sense over a small, already-vetted candidate pool).
+
+Concrete follow-up from this decision, done now while it was fresh: added
+`avg_rating`/`reviews_count` columns to `Hike` (migration
+`0ad540eec44f_add_hike_rating_and_review_count_fields`) and populated them in
+`zion_hikes.json`/`load_hikes.py` from the AllTrails data already pulled for
+each hike. This makes "why was this one of the recommended hikes" an
+auditable data point, not just an unrecorded judgment call — important once
+there are more parks and nobody remembers the reasoning behind each pick.
+
+When this scales beyond Zion, the curation workflow itself should also
+change: use `find_trails_within_bounds` with `sort: most_popular` against a
+park's bounding box to get a ranked list in one call, rather than guessing
+trail names one at a time the way Zion's 5 were picked.
 
 ## Full-stack verification — needs you
 
@@ -113,7 +141,8 @@ Verified so far only by unit tests + `--sql` migration dry-run:
 - ⬜ `uv run python load_hikes.py data/zion_hikes.json` against real Postgres —
   should print 5 lines (one per hike) ending "Loaded 5 hikes for zion.", with
   Angels Landing showing `strenuous (score 129.4)` and no other warnings
-- ⬜ `GET /parks/{zion_id}/hikes` returning all 5 with highlights populated
+- ⬜ `GET /parks/{zion_id}/hikes` returning all 5 with highlights, `avg_rating`,
+  and `reviews_count` populated
 
 Steps once you're ready:
 ```bash
