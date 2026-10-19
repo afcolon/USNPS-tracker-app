@@ -132,21 +132,17 @@ change: use `find_trails_within_bounds` with `sort: most_popular` against a
 park's bounding box to get a ranked list in one call, rather than guessing
 trail names one at a time the way Zion's 5 were picked.
 
-## Full-stack verification — needs you
+## Full-stack verification
 
-Same Docker constraint as every prior phase: this sandbox can't run Postgres.
-Verified so far only by unit tests + `--sql` migration dry-run:
+Same Docker constraint as every prior phase: this sandbox can't run Postgres,
+so this had to be verified on real hardware. Confirmed (2026-10-19):
 
-- ⬜ `alembic upgrade head` creating the `hikes`/`hike_highlights` tables
-- ⬜ `uv run python load_hikes.py data/zion_hikes.json` against real Postgres —
-  should print 5 lines (one per hike) ending "Loaded 5 hikes for zion.", with
-  Angels Landing showing `strenuous (score 129.4)` and no other warnings
-- ⬜ `GET /parks/{zion_id}/hikes` returning all 5 with highlights, `avg_rating`,
-  and `reviews_count` populated
+- ✅ `alembic upgrade head` — all 3 migrations applied cleanly (tables +
+  rating/review-count columns)
+- ✅ `load_hikes.py data/zion_hikes.json` — loaded 5/5 hikes, no warnings
+- ✅ `GET /parks/{zion_id}/hikes` — all 5 hikes returned with highlights,
+  `avg_rating`, and `reviews_count` populated
 
-Steps once you're ready:
-```bash
-cd backend && uv run alembic upgrade head
-cd ../ingestion && uv run python load_hikes.py data/zion_hikes.json
-# then hit http://localhost:8000/parks/<zion's id>/hikes
-```
+Phase 2 is done — all of spec §7's Phase 2 bar (hikes for one park, manually
+entered, full stats + highlights) is verified against real Postgres, not just
+unit tests.

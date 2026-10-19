@@ -10,6 +10,8 @@ Full spec: [docs/spec.md](docs/spec.md)
 
 ✅ Phase 1 complete — all 63 National Parks load from the NPS API, mark visited, see stamps. Verified end-to-end against real Postgres + a real NPS API key. See [docs/phase1-notes.md](docs/phase1-notes.md).
 
+✅ Phase 2 complete — hike data (stats, difficulty, highlights) for Zion, the pilot park, sourced via the AllTrails MCP connector. Verified end-to-end against real Postgres. See [docs/phase2-notes.md](docs/phase2-notes.md).
+
 ## Stack
 
 - **Backend:** Python + FastAPI
