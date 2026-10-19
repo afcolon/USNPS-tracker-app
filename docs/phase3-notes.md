@@ -105,8 +105,16 @@ this branch was merged:
 - **The thin-coverage warning compared the wrong count.** It checked raw
   `len(hikes)` against `num_days`, so a park with plenty of hikes that all get
   filtered out by `max_difficulty` (or don't fit any day's `max_hours_per_day`
-  budget) produced a silently empty itinerary with no warning. Fixed to compare
-  the actually-*scheduled* hike count instead.
+  budget) produced a silently empty itinerary with no warning. First fix pass
+  corrected the *trigger* condition but left the message text reporting the
+  same stale raw count while claiming it "match[ed] your preferences" -- caught
+  on the very next review pass. Now both the trigger and the message use the
+  actually-*scheduled* count.
+- **A bare `assert` guarding a "this should never happen" case** (the just-
+  committed trip failing to reload) would silently no-op under `-O`/
+  `PYTHONOPTIMIZE`, turning a would-be clear error into an obscure
+  `AttributeError` deeper in `_trip_to_out`. Replaced with an explicit
+  `HTTPException(500, ...)` that survives optimization flags.
 - **Check-then-use race + a redundant query** in `GET /trips/{id}`: it checked
   existence with `db.get()`, then re-queried the same row via `scalar_one()` in
   the shared loader, which would 500 instead of 404 if the row vanished between

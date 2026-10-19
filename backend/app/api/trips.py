@@ -87,12 +87,13 @@ async def create_trip(body: TripIn, db: DbSession) -> TripOut:
     scheduled_count = sum(len(day) for day in days)
     if scheduled_count < body.num_days:
         warning = (
-            f"Only {len(hikes)} hike(s) available for this park matching your "
-            "preferences -- some days may be light or empty."
+            f"Only {scheduled_count} hike(s) scheduled across {body.num_days} day(s) -- "
+            "some days may be light or empty."
         )
 
     trip_row = await _fetch_trip(db, trip.id)
-    assert trip_row is not None  # just committed in this same transaction
+    if trip_row is None:
+        raise HTTPException(status_code=500, detail="Trip was created but could not be reloaded")
     return _trip_to_out(trip_row, warning)
 
 
