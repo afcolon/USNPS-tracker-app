@@ -2,6 +2,11 @@ import type { Park, Trip, TripRequest } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 
+/** Thrown when the backend rejects the request itself (422) -- distinct from
+ * a network/server failure, so the UI can tell the user what's actually
+ * wrong instead of suggesting the backend might be down. */
+export class TripValidationError extends Error {}
+
 export async function fetchParks(): Promise<Park[]> {
   const res = await fetch(`${API_BASE_URL}/parks`);
   if (!res.ok) throw new Error('Failed to fetch parks');
@@ -28,6 +33,7 @@ export async function createTrip(request: TripRequest): Promise<Trip> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),
   });
+  if (res.status === 422) throw new TripValidationError('Trip request was invalid');
   if (!res.ok) throw new Error('Failed to create trip');
   return res.json();
 }

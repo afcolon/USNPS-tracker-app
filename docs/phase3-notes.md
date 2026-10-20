@@ -261,6 +261,30 @@ Four more findings; you chose which to fix now vs. accept as known tradeoffs.
   single-user scale -- same tradeoff class as the missing `trip_itinerary_items`
   index noted above.
 
+## Feedback from real-hardware testing (before the fifth review pass's fix landed)
+
+Two issues you hit directly while testing, both fixed:
+
+- **The generic error message was masking the `max_hours_per_day` validation
+  error you just hit.** `createTrip()` threw the same `Error` for every
+  failure, so the new `le=24` validation (added this pass) surfaced as "Is
+  the backend running?" instead of saying what was actually wrong -- this
+  was the exact "accepted tradeoff" from the fourth review pass, now worth
+  fixing since it directly confused real testing. Added a distinct
+  `TripValidationError` thrown specifically on a 422 response, and
+  `TripPlanner` now shows "One of your trip settings is invalid -- check the
+  days and hours/day values" for that case instead of the generic message.
+- **Text was hard to read against a near-black background.** `:root` had
+  `color-scheme: light dark`, which lets the browser swap to a dark default
+  page background on a dark-mode OS/browser, while every color in
+  `index.css` (e.g. the gray `.trip-planner__link` text) was chosen assuming
+  a light background -- low contrast, not full invisibility, hence easy to
+  miss in review. Short-term fix per your steer (stay consistent, design
+  dark mode properly later): pinned `color-scheme: light` and gave `body` an
+  explicit white background/dark text color, so the app renders the same
+  light theme regardless of OS/browser preference until real dark-mode
+  support is designed.
+
 ## Full-stack verification — needs you
 
 Same Docker constraint as every prior phase: this sandbox can't run Postgres, so
@@ -304,6 +328,12 @@ before merging:
   now show those actual settings instead of the hardcoded defaults
 - ⬜ Confirm the itinerary still shows "~Nm (estimated)" for hikes with no
   real duration data, and a plain duration otherwise
+- ⬜ Entering an hours/day value over 24 now shows "One of your trip settings
+  is invalid -- check the days and hours/day values" instead of "Is the
+  backend running?"
+- ⬜ The app renders with a consistent light background/text regardless of
+  your OS/browser dark-mode setting (the trip-saved note and other text
+  should be clearly readable)
 
 ```bash
 cd backend && uv run alembic upgrade head && uv run uvicorn app.main:app --reload

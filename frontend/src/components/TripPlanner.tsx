@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createTrip } from '../api';
+import { createTrip, TripValidationError } from '../api';
 import type { Park, Trip, TripHike, TripRequest } from '../types';
 
 interface TripPlannerProps {
@@ -58,8 +58,12 @@ export function TripPlanner({ park, onBack, initialTrip }: TripPlannerProps) {
       const url = new URL(window.location.href);
       url.searchParams.set('trip', String(result.id));
       window.history.pushState({}, '', url);
-    } catch {
-      setError('Could not plan a trip. Is the backend running?');
+    } catch (err) {
+      setError(
+        err instanceof TripValidationError
+          ? 'One of your trip settings is invalid -- check the days and hours/day values.'
+          : 'Could not plan a trip. Is the backend running?',
+      );
     } finally {
       setLoading(false);
     }
