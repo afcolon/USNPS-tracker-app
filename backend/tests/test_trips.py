@@ -88,6 +88,15 @@ async def test_create_trip_rejects_non_positive_num_days(
     assert response.status_code == 422
 
 
+async def test_create_trip_rejects_unreasonable_max_hours_per_day(
+    client: AsyncClient, seeded_park: int
+) -> None:
+    response = await client.post(
+        "/trips", json={"park_id": seeded_park, "num_days": 1, "max_hours_per_day": 99999}
+    )
+    assert response.status_code == 422
+
+
 async def test_create_trip_warns_when_a_hike_is_dropped_for_budget(
     client: AsyncClient, seeded_park: int, seeded_hike: int, seeded_hike_long: int
 ) -> None:

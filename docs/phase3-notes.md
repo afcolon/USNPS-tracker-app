@@ -233,6 +233,34 @@ Four more findings; you chose which to fix now vs. accept as known tradeoffs.
   sequential scan as the table grows -- not a concern at this app's current
   scale (single user, a handful of trips), revisit if that changes.
 
+## Fifth pre-merge review pass
+
+- **Fixed: `max_hours_per_day` had no upper bound.** It had a floor (`gt=0`)
+  but nothing stopping e.g. `99999`, which would silently remove the per-day
+  budget as a real constraint and let the bin-packer cram every eligible
+  hike into day 1. Added `le=24` (a hard physical ceiling -- the frontend's
+  own `<input>` already caps entry at 16, this just backstops the API).
+  Same validation-gap class already fixed for `num_days` and this field's
+  lower bound.
+
+**Noted as future improvements, not fixed now (your call):**
+
+- The hike query in `create_trip` (`select(Hike).where(Hike.park_id == ...)`)
+  has no `ORDER BY`, unlike the sibling `list_hikes` endpoint. Row order is
+  unspecified on real Postgres (SQLite, which the tests run against, happens
+  to preserve insertion order), so `quality_score` ties in the bin-packer's
+  `sorted(..., reverse=True)` break on unpredictable DB-internal order --
+  identical `POST /trips` requests could produce different saved itineraries
+  across calls. Same "passed on SQLite, bites on real Postgres" class as the
+  earlier timezone bug. Fix would be adding an explicit `.order_by(Hike.id)`
+  (or similar) to that query.
+- `create_trip` does a full extra DB round-trip (`_fetch_trip`) after commit
+  to rebuild the response, instead of eager-loading `Hike.highlights` up
+  front and building the response from data already in memory. Real
+  inefficiency, not a correctness bug, and not urgent at the app's current
+  single-user scale -- same tradeoff class as the missing `trip_itinerary_items`
+  index noted above.
+
 ## Full-stack verification — needs you
 
 Same Docker constraint as every prior phase: this sandbox can't run Postgres, so

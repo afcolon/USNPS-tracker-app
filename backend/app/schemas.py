@@ -56,7 +56,7 @@ class TripIn(BaseModel):
     park_id: int
     num_days: int = Field(gt=0, le=30)
     max_difficulty: Literal["easy", "moderate", "strenuous"] | None = None
-    max_hours_per_day: float = Field(default=8.0, gt=0)
+    max_hours_per_day: float = Field(default=8.0, gt=0, le=24)
 
 
 class TripHikeOut(HikeOut):
