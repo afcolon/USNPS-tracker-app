@@ -10,10 +10,19 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 # Load nvm non-interactively so the frontend picks up the Node version pinned
 # in frontend/.nvmrc, even though this script isn't an interactive shell (nvm
 # is normally only available because a shell's rc file sources it).
+#
+# nvm.sh is not written for `set -e`/`set -u`: it relies on functions that
+# return non-zero as normal control flow (not real errors) and references
+# variables that are legitimately unset on first load. Sourcing it with our
+# strict mode still active aborts this entire script instantly and silently
+# (before even the first echo below), so strict mode is relaxed just for the
+# sourcing call and restored right after.
 export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 if [ -s "$NVM_DIR/nvm.sh" ]; then
+  set +euo pipefail
   # shellcheck disable=SC1091
   \. "$NVM_DIR/nvm.sh"
+  set -euo pipefail
 fi
 
 # kill 0 signals every process in this script's process group (itself plus
@@ -39,7 +48,11 @@ echo "==> Starting backend (http://localhost:8000)..."
 echo "==> Starting frontend (http://localhost:5173)..."
 (
   cd frontend
-  if command -v nvm >/dev/null 2>&1; then nvm use >/dev/null; fi
+  if command -v nvm >/dev/null 2>&1; then
+    set +euo pipefail
+    nvm use >/dev/null
+    set -euo pipefail
+  fi
   npm run dev
 ) 2>&1 | sed -u 's/^/[frontend] /' &
 
