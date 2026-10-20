@@ -29,6 +29,31 @@ async def test_get_trip_round_trips(
     assert trip["warning"] is None  # not recomputed on GET, see docs/phase3-notes.md
 
 
+async def test_trip_persists_planner_settings_for_reopening(
+    client: AsyncClient, seeded_park: int, seeded_hike: int
+) -> None:
+    # The frontend syncs its form from a reopened trip's max_difficulty/
+    # max_hours_per_day (see docs/phase3-notes.md), so these must round-trip
+    # through both POST and GET, not just num_days.
+    create_response = await client.post(
+        "/trips",
+        json={
+            "park_id": seeded_park,
+            "num_days": 1,
+            "max_difficulty": "strenuous",
+            "max_hours_per_day": 6,
+        },
+    )
+    trip_id = create_response.json()["id"]
+    assert create_response.json()["max_difficulty"] == "strenuous"
+    assert create_response.json()["max_hours_per_day"] == 6
+
+    get_response = await client.get(f"/trips/{trip_id}")
+    trip = get_response.json()
+    assert trip["max_difficulty"] == "strenuous"
+    assert trip["max_hours_per_day"] == 6
+
+
 async def test_create_trip_unknown_park_404(client: AsyncClient, seeded_park: int) -> None:
     response = await client.post("/trips", json={"park_id": 999, "num_days": 1})
     assert response.status_code == 404

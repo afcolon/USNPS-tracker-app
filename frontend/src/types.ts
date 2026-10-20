@@ -48,6 +48,8 @@ export interface Trip {
   id: number;
   park_id: number;
   num_days: number;
+  max_difficulty: 'easy' | 'moderate' | 'strenuous' | null;
+  max_hours_per_day: number;
   created_at: string;
   warning: string | null;
   days: TripDay[];

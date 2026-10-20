@@ -28,9 +28,9 @@ function formatDuration(hike: TripHike): string {
 }
 
 export function TripPlanner({ park, onBack, initialTrip }: TripPlannerProps) {
-  const [numDays, setNumDays] = useState(2);
-  const [maxDifficulty, setMaxDifficulty] = useState<string>('');
-  const [maxHoursPerDay, setMaxHoursPerDay] = useState(8);
+  const [numDays, setNumDays] = useState(initialTrip?.num_days ?? 2);
+  const [maxDifficulty, setMaxDifficulty] = useState<string>(initialTrip?.max_difficulty ?? '');
+  const [maxHoursPerDay, setMaxHoursPerDay] = useState(initialTrip?.max_hours_per_day ?? 8);
   const [trip, setTrip] = useState<Trip | null>(initialTrip ?? null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);

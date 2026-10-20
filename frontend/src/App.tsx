@@ -15,6 +15,7 @@ function parseTripIdFromUrl(): number | null {
 
 function App() {
   const [parks, setParks] = useState<Park[]>([]);
+  const [parksLoaded, setParksLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [planningPark, setPlanningPark] = useState<Park | null>(null);
   const [linkedTrip, setLinkedTrip] = useState<Trip | null>(null);
@@ -22,7 +23,10 @@ function App() {
 
   useEffect(() => {
     fetchParks()
-      .then(setParks)
+      .then((fetched) => {
+        setParks(fetched);
+        setParksLoaded(true);
+      })
       .catch(() => setError('Could not load parks. Is the backend running?'));
   }, []);
 
@@ -35,7 +39,7 @@ function App() {
 
   const linkedPark = linkedTrip ? (parks.find((p) => p.id === linkedTrip.park_id) ?? null) : null;
   const activePark = planningPark ?? linkedPark;
-  const linkedTripUnresolved = linkedTrip != null && parks.length > 0 && linkedPark == null;
+  const linkedTripUnresolved = linkedTrip != null && parksLoaded && linkedPark == null;
 
   async function handleToggleVisited(park: Park) {
     try {

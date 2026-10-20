@@ -102,6 +102,11 @@ class Trip(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     park_id: Mapped[int] = mapped_column(ForeignKey("parks.id"))
     num_days: Mapped[int]
+    max_difficulty: Mapped[str | None]
+    """The difficulty cap this trip was planned with, if any -- stored so a
+    trip reopened via its ?trip=<id> link can show the same planner settings
+    it was created with, not just the resulting itinerary."""
+    max_hours_per_day: Mapped[float]
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
 
     park: Mapped[Park] = relationship()

@@ -44,6 +44,8 @@ def _trip_to_out(trip: Trip, warning: str | None) -> TripOut:
         id=trip.id,
         park_id=trip.park_id,
         num_days=trip.num_days,
+        max_difficulty=trip.max_difficulty,
+        max_hours_per_day=trip.max_hours_per_day,
         created_at=trip.created_at,
         warning=warning,
         days=[
@@ -76,6 +78,8 @@ async def create_trip(body: TripIn, db: DbSession) -> TripOut:
         user_id=user.id,
         park_id=body.park_id,
         num_days=body.num_days,
+        max_difficulty=body.max_difficulty,
+        max_hours_per_day=body.max_hours_per_day,
         created_at=datetime.datetime.now(datetime.UTC),
     )
     db.add(trip)

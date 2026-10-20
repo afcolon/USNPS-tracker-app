@@ -202,6 +202,37 @@ pass. Three findings.
   filter call becomes a cheap no-op pass over the already-filtered list
   rather than re-scanning every hike for the park.
 
+## Fourth pre-merge review pass (after the empty-day/stuck-loading fixes)
+
+Four more findings; you chose which to fix now vs. accept as known tradeoffs.
+
+- **Fixed: reopening a saved trip didn't sync the planner form.** The
+  itinerary shown via `?trip=<id>` was always correct, but the form fields
+  (Days, Max difficulty, Max hours/day) stayed at hardcoded defaults instead
+  of the settings the trip was actually created with -- clicking "Plan my
+  trip" again would silently replace it using the wrong settings. Root
+  cause: `max_difficulty`/`max_hours_per_day` were accepted by `POST /trips`
+  but never persisted, so there was nothing to sync from. Added both as
+  columns on `Trip` (new migration `8c1f2e9a4b3d`, `max_hours_per_day`
+  backfilled to `8.0` for any pre-existing rows), returned them on `TripOut`,
+  and initialize `TripPlanner`'s form state from `initialTrip` when present.
+- **Fixed: a third trigger for the stuck "Loading your trip…" bug.** If the
+  parks table is genuinely empty (e.g. a fresh DB before `load-data.sh`
+  runs) while a `?trip=` link is open, `fetchParks()` resolves successfully
+  with `[]` -- not an error -- so the old `parks.length > 0` check used to
+  detect "parks have loaded" never became true. Added a dedicated
+  `parksLoaded` boolean set once the fetch resolves, independent of count.
+- **Accepted as a known tradeoff (not fixed):** `createTrip()` failures all
+  show the same generic "Is the backend running?" message, including a
+  legitimate 422 from the backend's own validation (e.g. clearing the Days
+  field to 0). Real but lower priority than the other three; revisit if it
+  causes actual confusion in practice.
+- **Accepted as a known tradeoff (not fixed):** no DB index on
+  `trip_itinerary_items.trip_id`/`hike_id`. Every `GET`/`POST /trips`
+  currently joins through these via `selectinload`, which will degrade to a
+  sequential scan as the table grows -- not a concern at this app's current
+  scale (single user, a handful of trips), revisit if that changes.
+
 ## Full-stack verification — needs you
 
 Same Docker constraint as every prior phase: this sandbox can't run Postgres, so
@@ -230,6 +261,21 @@ commit history): `./scripts/dev.sh` was silently aborting before printing
 anything, due to `set -euo pipefail` being incompatible with sourcing
 `nvm.sh`; and saved trips had no way to be revisited from the UI, fixed via
 the `?trip=<id>` URL mechanism.
+
+### Still needs you: re-verify after the fourth review pass
+
+The checks above were run before the fourth review pass added a new
+migration and the form-sync behavior. Needs one more pass on real hardware
+before merging:
+
+- ⬜ `cd backend && uv run alembic upgrade head` picks up the new
+  `8c1f2e9a4b3d` migration (`max_difficulty`/`max_hours_per_day` columns on
+  `trips`) cleanly on top of the already-applied `34bacf04e5fc`
+- ⬜ Create a trip with a difficulty cap and a non-default hours/day, open it
+  via its `?trip=<id>` link (or a fresh reload), and confirm the form fields
+  now show those actual settings instead of the hardcoded defaults
+- ⬜ Confirm the itinerary still shows "~Nm (estimated)" for hikes with no
+  real duration data, and a plain duration otherwise
 
 ```bash
 cd backend && uv run alembic upgrade head && uv run uvicorn app.main:app --reload

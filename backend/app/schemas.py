@@ -77,6 +77,8 @@ class TripOut(BaseModel):
     id: int
     park_id: int
     num_days: int
+    max_difficulty: Literal["easy", "moderate", "strenuous"] | None = None
+    max_hours_per_day: float
     created_at: datetime.datetime
     warning: str | None = None
     days: list[TripDayOut]
