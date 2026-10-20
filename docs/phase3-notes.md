@@ -3,7 +3,7 @@
 Spec §7 defines "done" for Phase 3 as: *"Given park + days, returns a reasonable
 day-by-day plan, no travel-time optimization yet."* Spec §5 gives the v1 algorithm
 shape: filter by difficulty, sort by a quality/duration blend, greedily pack into
-days respecting an hours budget, no travel-time optimization (that's v3/Phase 5).
+days respecting an hours budget, no travel-time optimization (that's v2/Phase 4).
 
 ## Decisions made with you (confirmed via prompts)
 
@@ -46,7 +46,7 @@ max-hours-per-day budget" both needed a concrete formula:
 
 Spec §5 v1 says "just chronological/geographic clustering (e.g. group hikes near
 the same trailhead area)" as the alternative to full travel-time optimization
-(that's v3/Phase 5). `_order_by_proximity()` does a greedy nearest-neighbor
+(that's v2/Phase 4). `_order_by_proximity()` does a greedy nearest-neighbor
 ordering by trailhead lat/lng within each day -- real code, unit-tested, ready to
 use.
 

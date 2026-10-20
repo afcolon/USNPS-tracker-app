@@ -62,7 +62,7 @@ the live NPS API.
   were always slated to come from OSM/NPS GIS data per spec §2.3 anyway, so
   this doesn't actually change the long-term plan, just makes explicit that
   it isn't done yet. Don't trust these coordinates for anything distance-
-  sensitive (e.g. Phase 5's travel-time work) until that pass happens.
+  sensitive (e.g. Phase 4's travel-time work) until that pass happens.
 - **Angels Landing needed a difficulty override.** The §3.2.1 formula
   (`sqrt(elevation_ft × 2 × distance_mi)`) computes 129.4 → **Moderate** for
   Angels Landing (4.8 mi, 1,745 ft). But it's universally rated **Strenuous**
