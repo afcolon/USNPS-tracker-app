@@ -3,7 +3,7 @@
 Spec §7 defines "done" for Phase 3 as: *"Given park + days, returns a reasonable
 day-by-day plan, no travel-time optimization yet."* Spec §5 gives the v1 algorithm
 shape: filter by difficulty, sort by a quality/duration blend, greedily pack into
-days respecting an hours budget, no travel-time optimization (that's v2/Phase 4).
+days respecting an hours budget, no travel-time optimization (that's v3/Phase 5).
 
 ## Decisions made with you (confirmed via prompts)
 
@@ -25,7 +25,7 @@ max-hours-per-day budget" both needed a concrete formula:
 
 - **Quality score:** `avg_rating * log(reviews_count + 1)`. Chosen so a single
   5-star/3-review hike doesn't outrank a 4.8-star/40,000-review one -- directly
-  uses the `avg_rating`/`reviews_count` fields added in the Phase 5 scope decision
+  uses the `avg_rating`/`reviews_count` fields added in the Phase 6 scope decision
   (see `docs/phase2-notes.md`), which is exactly what they were added for.
 - **Bin-packing:** hikes are considered highest-quality-first; each goes into
   whichever day both has room for it and would have the least leftover budget
@@ -46,7 +46,7 @@ max-hours-per-day budget" both needed a concrete formula:
 
 Spec §5 v1 says "just chronological/geographic clustering (e.g. group hikes near
 the same trailhead area)" as the alternative to full travel-time optimization
-(that's v2/Phase 4). `_order_by_proximity()` does a greedy nearest-neighbor
+(that's v3/Phase 5). `_order_by_proximity()` does a greedy nearest-neighbor
 ordering by trailhead lat/lng within each day -- real code, unit-tested, ready to
 use.
 
@@ -55,7 +55,7 @@ trailhead coordinate (the Phase 2 limitation documented in `docs/phase2-notes.md
 -- AllTrails doesn't expose real trailhead coordinates). So right now this
 function runs against identical coordinates for every hike in a park, which is a
 no-op (zero distances, order unchanged). It'll start doing real work the moment
-real per-trailhead coordinates land (the OSM/NPS-GIS pass planned for Phase 5) --
+real per-trailhead coordinates land (the OSM/NPS-GIS pass planned for Phase 6) --
 no code change needed here when that happens.
 
 ## Implementation decisions made without asking (documented for easy tweaking)
@@ -82,7 +82,7 @@ no code change needed here when that happens.
 - **Only Zion is meaningfully plannable right now.** Trip planning works for any
   park, but only Zion has hike data loaded (Phase 2's pilot). Planning a trip
   for any other park returns a 201 with all-empty days and the thin-coverage
-  warning -- correct behavior, just not a very interesting demo until Phase 5
+  warning -- correct behavior, just not a very interesting demo until Phase 6
   expands hike coverage to more parks.
 - **No new frontend dependency (no router).** The trip planner is a second
   "view" toggled via local state in `App.tsx` (`planningPark: Park | null`),

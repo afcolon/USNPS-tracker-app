@@ -173,8 +173,9 @@ This is the feature most worth being deliberate about, since it's the differenti
 **Suggested build order (don't start with optimization):**
 
 1. **v1 — Greedy/manual rules:** For the chosen park, filter hikes by difficulty preference, sort by some blend of "highlight quality" and duration, and manually group into days respecting a max-hours-per-day budget. No travel-time optimization yet — just chronological/geographic clustering (e.g. group hikes near the same trailhead area).
-2. **v2 — Add travel time:** Build a distance/time matrix between trailheads (via OSRM), and use it to avoid itineraries that zigzag. A reasonable non-fancy approach: cluster trailheads geographically first (e.g. k-means on coordinates), then assign clusters to days.
-3. **v3 — Real optimization (optional/stretch):** Frame it as a variant of a vehicle routing / knapsack problem — maximize "value" (highlight quality, variety) within daily time and mileage budgets, minimizing travel time between selected hikes. `ortools` (Google's constraint solver) is the natural tool if you get here.
+2. **v2 — Spread across available days:** v1's best-fit-decreasing bin-packing optimizes for tight per-day packing (least leftover budget), which tends to concentrate hikes into the earliest day(s) it can fill rather than spreading them across every requested day — e.g. a 3-day trip with enough hikes to fill all 3 days can still come back as 4/1/0 if v1's packing happens to favor day 1 every time. v2 accounts for the number of available days as its own constraint, not just the per-day hour budget: distribute eligible hikes across all requested days before over-filling any single one, when there are enough hikes to do so.
+3. **v3 — Add travel time:** Build a distance/time matrix between trailheads (via OSRM), and use it to avoid itineraries that zigzag. A reasonable non-fancy approach: cluster trailheads geographically first (e.g. k-means on coordinates), then assign clusters to days.
+4. **v4 — Real optimization (optional/stretch):** Frame it as a variant of a vehicle routing / knapsack problem — maximize "value" (highlight quality, variety) within daily time and mileage budgets, minimizing travel time between selected hikes. `ortools` (Google's constraint solver) is the natural tool if you get here.
 
 Starting simple and testable at each stage fits your general approach of building incrementally and testing between steps — the greedy version is a real, demoable feature on its own, and you can decide later whether the optimization step is worth the added complexity.
 
@@ -219,9 +220,10 @@ TripItineraryItem
 | 1 | Park data + passport | All NPS parks loaded from the NPS API; user can mark visited, sees stamps |
 | 2 | Hike data (curated, 1 pilot park) | Hikes for one park manually entered with full stats + highlights |
 | 3 | Trip planner v1 (greedy) | Given park + days, returns a reasonable day-by-day plan, no travel-time logic yet |
-| 4 | Travel time integration | Itinerary respects trailhead proximity (OSRM matrix) |
-| 5 | Expand hike data coverage | More parks, decide on curation vs. aggregation approach from §3.2 |
-| 6 (stretch) | Optimization engine | Replace greedy logic with `ortools`-based solver |
+| 4 | Trip planner v2 (day-spreading) | Itinerary distributes hikes across all requested days when enough eligible hikes exist, instead of v1's tendency to concentrate them into the earliest day(s) -- see §5 and `docs/phase3-notes.md`'s "empty-trailing-day" finding |
+| 5 | Travel time integration | Itinerary respects trailhead proximity (OSRM matrix) |
+| 6 | Expand hike data coverage | More parks, decide on curation vs. aggregation approach from §3.2 |
+| 7 (stretch) | Optimization engine | Replace greedy logic with `ortools`-based solver |
 
 ---
 

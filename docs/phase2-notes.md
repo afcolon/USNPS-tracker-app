@@ -62,7 +62,7 @@ the live NPS API.
   were always slated to come from OSM/NPS GIS data per spec §2.3 anyway, so
   this doesn't actually change the long-term plan, just makes explicit that
   it isn't done yet. Don't trust these coordinates for anything distance-
-  sensitive (e.g. Phase 4's travel-time work) until that pass happens.
+  sensitive (e.g. Phase 5's travel-time work) until that pass happens.
 - **Angels Landing needed a difficulty override.** The §3.2.1 formula
   (`sqrt(elevation_ft × 2 × distance_mi)`) computes 129.4 → **Moderate** for
   Angels Landing (4.8 mi, 1,745 ft). But it's universally rated **Strenuous**
@@ -92,7 +92,7 @@ the live NPS API.
 - **No OSM/USGS computed-stats pipeline.** Spec §3.2 designates that as the
   eventual *primary* approach, but the phase table (§7) scopes Phase 2 as
   curated/manual for one pilot park specifically, deferring "decide on
-  curation vs. aggregation approach" to Phase 5. This phase followed that
+  curation vs. aggregation approach" to Phase 6. This phase followed that
   literally — AllTrails-curated is a stand-in for "manual," not an attempt at
   the computed pipeline.
 - **No frontend UI for hikes yet.** Phase 2's spec "done when" bar is a data
@@ -103,7 +103,7 @@ the live NPS API.
   useful). Right now the only way to see this data is a direct DB query or
   hitting `GET /parks/{id}/hikes`.
 
-## Phase 5 scope decision: recommended-only, not comprehensive
+## Phase 6 scope decision: recommended-only, not comprehensive
 
 Settled ahead of time, since it changes how future hike-data work should be
 shaped: when this expands past Zion to more/all parks, hikes are a **curated
