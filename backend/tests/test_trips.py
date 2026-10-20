@@ -63,6 +63,23 @@ async def test_create_trip_rejects_non_positive_num_days(
     assert response.status_code == 422
 
 
+async def test_create_trip_warns_when_a_hike_is_dropped_for_budget(
+    client: AsyncClient, seeded_park: int, seeded_hike: int, seeded_hike_long: int
+) -> None:
+    # Angels Landing (4h) is scheduled first by quality score, leaving only 4h
+    # of the 8h/day budget -- West Rim Trail (5h) doesn't fit and is dropped,
+    # even though scheduled_count (1) == num_days (1), so the old warning
+    # trigger would have missed this entirely.
+    response = await client.post("/trips", json={"park_id": seeded_park, "num_days": 1})
+    assert response.status_code == 201
+    trip = response.json()
+    hikes = trip["days"][0]["hikes"]
+    assert len(hikes) == 1
+    assert hikes[0]["name"] == "Angels Landing Trail"
+    assert trip["warning"] is not None
+    assert "didn't fit" in trip["warning"]
+
+
 async def test_trip_hike_duration_falls_back_when_unset(
     client: AsyncClient, seeded_park: int, seeded_hike_no_duration: int
 ) -> None:

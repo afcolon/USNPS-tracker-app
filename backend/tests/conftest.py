@@ -77,6 +77,36 @@ async def seeded_hike(session_factory, seeded_park: int) -> int:
 
 
 @pytest.fixture
+async def seeded_hike_long(session_factory, seeded_park: int) -> int:
+    """A 5-hour hike with a modest rating (loses the quality-score tie-break
+    against Angels Landing), used to test that a hike which doesn't fit the
+    remaining hours/day budget is correctly reported as dropped."""
+    async with session_factory() as session:
+        hike = Hike(
+            park_id=seeded_park,
+            name="West Rim Trail",
+            distance_miles=14.2,
+            elevation_gain_ft=3600,
+            difficulty="strenuous",
+            difficulty_score=612.0,
+            difficulty_override=None,
+            difficulty_override_reason=None,
+            hike_type="point_to_point",
+            trailhead_lat=37.3,
+            trailhead_lng=-113.0,
+            estimated_duration_min=300,
+            source="alltrails",
+            source_id="10006573",
+            source_url="https://www.alltrails.com/trail/us/utah/west-rim-trail",
+            avg_rating=4.6,
+            reviews_count=800,
+        )
+        session.add(hike)
+        await session.commit()
+        return hike.id
+
+
+@pytest.fixture
 async def seeded_hike_no_duration(session_factory, seeded_park: int) -> int:
     """A hike with no `estimated_duration_min` -- mirrors Angels Landing's real
     AllTrails data (see docs/phase2-notes.md), used to test the planner's

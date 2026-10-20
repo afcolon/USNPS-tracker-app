@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 from app.core.db import DbSession
 from app.deps import get_current_user
 from app.models import Hike, Park, Trip, TripItineraryItem
-from app.planner import build_itinerary, estimate_duration_min
+from app.planner import build_itinerary, estimate_duration_min, filter_by_difficulty
 from app.schemas import HikeOut, TripDayOut, TripHikeOut, TripIn, TripOut
 
 router = APIRouter(tags=["trips"])
@@ -63,6 +63,7 @@ async def create_trip(body: TripIn, db: DbSession) -> TripOut:
 
     result = await db.execute(select(Hike).where(Hike.park_id == body.park_id))
     hikes = list(result.scalars().all())
+    eligible_hikes = filter_by_difficulty(hikes, body.max_difficulty)
 
     days = build_itinerary(
         hikes,
@@ -98,6 +99,12 @@ async def create_trip(body: TripIn, db: DbSession) -> TripOut:
         warning = (
             f"Only {scheduled_count} hike(s) scheduled across {body.num_days} day(s) -- "
             "some days may be light or empty."
+        )
+    elif scheduled_count < len(eligible_hikes):
+        dropped_count = len(eligible_hikes) - scheduled_count
+        warning = (
+            f"{dropped_count} hike(s) didn't fit within your {body.max_hours_per_day}-hour/day "
+            "budget and were left out of this itinerary."
         )
 
     trip_row = await _fetch_trip(db, trip.id)

@@ -160,14 +160,17 @@ too. Four more findings; outcomes below.
   revisit once the full hike-ingestion pass (ingesting beyond Zion) is
   underway, since that's the point new difficulty values would actually get
   introduced.
-- **Deferred, needs its own scoping:** the thin-coverage warning still only
-  fires on `scheduled_count < num_days`, so a park with plenty of hikes that
-  get silently dropped for not fitting any day's hour budget (while each day
-  still ends up non-empty) produces no warning at all. You flagged that a
-  real fix here overlaps with a bigger not-yet-built feature (letting a user
-  manually move hikes between days / adjust the itinerary), which is out of
-  scope for now. Left as-is for v1; revisit together with itinerary-editing
-  in a later phase rather than patching the warning logic in isolation.
+- **Fixed: thin-coverage warning now also catches budget-dropped hikes.**
+  Previously it only fired on `scheduled_count < num_days`, missing the case
+  where plenty of hikes exist but some don't fit any day's hour budget while
+  every day still ends up non-empty. You flagged that a *full* fix (e.g.
+  letting a user manually move hikes between days) is out of scope for now --
+  that's a future itinerary-editing feature. Scoped the fix to just the
+  warning: extracted `filter_by_difficulty()` out of `build_itinerary()` so
+  the endpoint can independently compute how many hikes were *eligible*
+  (post-difficulty-filter) vs. actually *scheduled*. Now warns with a
+  distinct message in each case: too few hikes available for the day count,
+  vs. hikes that didn't fit the hours/day budget and were dropped.
 
 ## Full-stack verification — needs you
 

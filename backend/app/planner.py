@@ -30,6 +30,13 @@ def effective_difficulty(hike: HikeLike) -> str:
     return hike.difficulty_override or hike.difficulty
 
 
+def filter_by_difficulty(hikes: list[HikeLike], max_difficulty: str | None) -> list[HikeLike]:
+    if max_difficulty is None:
+        return list(hikes)
+    max_idx = DIFFICULTY_ORDER.index(max_difficulty)
+    return [h for h in hikes if DIFFICULTY_ORDER.index(effective_difficulty(h)) <= max_idx]
+
+
 def estimate_duration_min(hike: HikeLike) -> float:
     """Falls back to a simple pace-based estimate when the source gave none
     (e.g. Angels Landing in ingestion/data/zion_hikes.json) -- ~30 min/mile
@@ -97,10 +104,7 @@ def build_itinerary(
     dropped from the itinerary (v1 has no "overflow" handling -- see
     docs/phase3-notes.md).
     """
-    if max_difficulty is not None:
-        max_idx = DIFFICULTY_ORDER.index(max_difficulty)
-        hikes = [h for h in hikes if DIFFICULTY_ORDER.index(effective_difficulty(h)) <= max_idx]
-
+    hikes = filter_by_difficulty(hikes, max_difficulty)
     hikes_sorted = sorted(hikes, key=quality_score, reverse=True)
 
     days: list[list[HikeLike]] = [[] for _ in range(num_days)]
