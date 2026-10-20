@@ -7,8 +7,8 @@ from sqlalchemy.orm import selectinload
 from app.core.db import DbSession
 from app.deps import get_current_user
 from app.models import Hike, Park, Trip, TripItineraryItem
-from app.planner import build_itinerary
-from app.schemas import TripDayOut, TripIn, TripOut
+from app.planner import build_itinerary, estimate_duration_min
+from app.schemas import HikeOut, TripDayOut, TripHikeOut, TripIn, TripOut
 
 router = APIRouter(tags=["trips"])
 
@@ -26,10 +26,19 @@ async def _fetch_trip(db: DbSession, trip_id: int) -> Trip | None:
     return result.scalar_one_or_none()
 
 
+def _to_trip_hike_out(hike: Hike) -> TripHikeOut:
+    return TripHikeOut(
+        **HikeOut.model_validate(hike).model_dump(),
+        effective_duration_min=round(estimate_duration_min(hike)),
+    )
+
+
 def _trip_to_out(trip: Trip, warning: str | None) -> TripOut:
-    days: dict[int, list] = {day_number: [] for day_number in range(1, trip.num_days + 1)}
+    days: dict[int, list[TripHikeOut]] = {
+        day_number: [] for day_number in range(1, trip.num_days + 1)
+    }
     for item in trip.items:
-        days[item.day_number].append(item.hike)
+        days[item.day_number].append(_to_trip_hike_out(item.hike))
 
     return TripOut(
         id=trip.id,

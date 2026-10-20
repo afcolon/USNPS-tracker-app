@@ -59,9 +59,18 @@ class TripIn(BaseModel):
     max_hours_per_day: float = Field(default=8.0, gt=0)
 
 
+class TripHikeOut(HikeOut):
+    effective_duration_min: int
+    """What the planner actually budgeted for this hike -- `estimated_duration_min`
+    when the hike has one, otherwise the planner's pace/elevation fallback
+    estimate (see app.planner.estimate_duration_min). Always present, unlike
+    `estimated_duration_min` which can be null; lets the UI explain why a day
+    looks full even for a hike with no real duration data."""
+
+
 class TripDayOut(BaseModel):
     day_number: int
-    hikes: list[HikeOut]
+    hikes: list[TripHikeOut]
 
 
 class TripOut(BaseModel):

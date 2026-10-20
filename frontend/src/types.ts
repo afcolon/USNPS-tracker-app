@@ -35,9 +35,13 @@ export interface Hike {
   highlights: HikeHighlight[];
 }
 
+export interface TripHike extends Hike {
+  effective_duration_min: number;
+}
+
 export interface TripDay {
   day_number: number;
-  hikes: Hike[];
+  hikes: TripHike[];
 }
 
 export interface Trip {

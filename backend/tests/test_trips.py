@@ -61,3 +61,16 @@ async def test_create_trip_rejects_non_positive_num_days(
 ) -> None:
     response = await client.post("/trips", json={"park_id": seeded_park, "num_days": 0})
     assert response.status_code == 422
+
+
+async def test_trip_hike_duration_falls_back_when_unset(
+    client: AsyncClient, seeded_park: int, seeded_hike_no_duration: int
+) -> None:
+    # Canyon Overlook has no estimated_duration_min (1.0 mi, 200 ft gain), so
+    # the response should carry the planner's fallback estimate:
+    # 1.0 * 30 + 200 / 50 = 34 minutes -- see app.planner.estimate_duration_min.
+    response = await client.post("/trips", json={"park_id": seeded_park, "num_days": 1})
+    assert response.status_code == 201
+    hike = response.json()["days"][0]["hikes"][0]
+    assert hike["estimated_duration_min"] is None
+    assert hike["effective_duration_min"] == 34

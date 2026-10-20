@@ -18,7 +18,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [planningPark, setPlanningPark] = useState<Park | null>(null);
   const [linkedTrip, setLinkedTrip] = useState<Trip | null>(null);
-  const [linkedTripId] = useState<number | null>(() => parseTripIdFromUrl());
+  const [linkedTripId, setLinkedTripId] = useState<number | null>(() => parseTripIdFromUrl());
 
   useEffect(() => {
     fetchParks()
@@ -56,6 +56,7 @@ function App() {
         onBack={() => {
           setPlanningPark(null);
           setLinkedTrip(null);
+          setLinkedTripId(null);
         }}
         initialTrip={linkedTrip ?? undefined}
       />

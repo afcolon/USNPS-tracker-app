@@ -126,6 +126,49 @@ this branch was merged:
   of a 422. Added `Field(gt=0, le=30)`; `max_hours_per_day` got the same
   treatment (`gt=0`).
 
+## Second pre-merge review pass (after full-stack verification)
+
+Run after real-hardware verification surfaced the `?trip=<id>` gap (see
+decisions table above) and the `scripts/dev.sh` fix, to cover that new diff
+too. Four more findings; outcomes below.
+
+- **Fixed: stuck "Loading your trip…" state.** Reproduced by you: opening a
+  trip via `?trip=<id>` then clicking "Back to passport" left the app stuck
+  on the loading screen forever. Root cause -- `onBack` cleared `linkedTrip`
+  but `linkedTripId` (parsed once from the URL at mount) had no setter and
+  was never reset, so the `linkedTripId != null` loading-guard stayed true
+  permanently even with the URL already cleared. Fixed by exposing and
+  clearing a `setLinkedTripId` alongside the other reset calls.
+- **Fixed: itinerary showed "duration unknown" for hikes the planner had
+  actually estimated.** The bin-packer always computes an effective duration
+  (`estimate_duration_min` -- real value if present, else the pace/elevation
+  fallback) to decide what fits in a day's budget, but that computed value
+  never left the backend; the UI only ever saw the possibly-null raw
+  `estimated_duration_min` and showed "unknown" regardless of what actually
+  drove the packing. Added `TripHikeOut` (extends `HikeOut` with
+  `effective_duration_min: int`, always populated) so `TripDayOut.hikes`
+  carries what the planner actually used; the UI now shows e.g. "~34m
+  (estimated)" instead of "duration unknown" for Canyon-Overlook-style hikes
+  with no source duration. Kept as a separate schema rather than changing
+  `HikeOut` itself, since `GET /parks/{id}/hikes` has no such reason to claim
+  a duration it doesn't have.
+- **Noted, not fixed now:** `DIFFICULTY_ORDER.index(...)` in
+  `build_itinerary` raises an unhandled `ValueError` (-> 500) if a hike's
+  effective difficulty is ever anything other than exactly
+  `easy`/`moderate`/`strenuous` -- nothing in the schema enforces that today.
+  Latent, not currently reachable with the seeded/loaded data. Flagged to
+  revisit once the full hike-ingestion pass (ingesting beyond Zion) is
+  underway, since that's the point new difficulty values would actually get
+  introduced.
+- **Deferred, needs its own scoping:** the thin-coverage warning still only
+  fires on `scheduled_count < num_days`, so a park with plenty of hikes that
+  get silently dropped for not fitting any day's hour budget (while each day
+  still ends up non-empty) produces no warning at all. You flagged that a
+  real fix here overlaps with a bigger not-yet-built feature (letting a user
+  manually move hikes between days / adjust the itinerary), which is out of
+  scope for now. Left as-is for v1; revisit together with itinerary-editing
+  in a later phase rather than patching the warning logic in isolation.
+
 ## Full-stack verification — needs you
 
 Same Docker constraint as every prior phase: this sandbox can't run Postgres, so

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createTrip } from '../api';
-import type { Hike, Park, Trip, TripRequest } from '../types';
+import type { Park, Trip, TripHike, TripRequest } from '../types';
 
 interface TripPlannerProps {
   park: Park;
@@ -14,15 +14,17 @@ const DIFFICULTIES: NonNullable<TripRequest['max_difficulty']>[] = [
   'strenuous',
 ];
 
-function effectiveDifficulty(hike: Hike): string {
+function effectiveDifficulty(hike: TripHike): string {
   return hike.difficulty_override ?? hike.difficulty;
 }
 
-function formatDuration(hike: Hike): string {
-  if (hike.estimated_duration_min == null) return 'duration unknown';
-  const hours = Math.floor(hike.estimated_duration_min / 60);
-  const minutes = hike.estimated_duration_min % 60;
-  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+function formatDuration(hike: TripHike): string {
+  const hours = Math.floor(hike.effective_duration_min / 60);
+  const minutes = hike.effective_duration_min % 60;
+  const formatted = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+  // The planner estimates a duration (pace + elevation heuristic) for hikes
+  // with no real duration data, so the day's budget still accounts for them.
+  return hike.estimated_duration_min == null ? `~${formatted} (estimated)` : formatted;
 }
 
 export function TripPlanner({ park, onBack, initialTrip }: TripPlannerProps) {

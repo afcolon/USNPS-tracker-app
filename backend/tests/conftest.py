@@ -74,3 +74,33 @@ async def seeded_hike(session_factory, seeded_park: int) -> int:
         session.add(hike)
         await session.commit()
         return hike.id
+
+
+@pytest.fixture
+async def seeded_hike_no_duration(session_factory, seeded_park: int) -> int:
+    """A hike with no `estimated_duration_min` -- mirrors Angels Landing's real
+    AllTrails data (see docs/phase2-notes.md), used to test the planner's
+    pace/elevation fallback estimate end-to-end via the API."""
+    async with session_factory() as session:
+        hike = Hike(
+            park_id=seeded_park,
+            name="Canyon Overlook Trail",
+            distance_miles=1.0,
+            elevation_gain_ft=200,
+            difficulty="easy",
+            difficulty_score=10.0,
+            difficulty_override=None,
+            difficulty_override_reason=None,
+            hike_type="out_and_back",
+            trailhead_lat=37.25,
+            trailhead_lng=-113.0,
+            estimated_duration_min=None,
+            source="alltrails",
+            source_id="10006572",
+            source_url="https://www.alltrails.com/trail/us/utah/canyon-overlook-trail",
+            avg_rating=4.8,
+            reviews_count=5000,
+        )
+        session.add(hike)
+        await session.commit()
+        return hike.id
