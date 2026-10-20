@@ -80,6 +80,24 @@ async def test_create_trip_warns_when_a_hike_is_dropped_for_budget(
     assert "didn't fit" in trip["warning"]
 
 
+async def test_create_trip_warns_when_a_day_ends_up_empty(
+    client: AsyncClient, seeded_park: int, seeded_three_equal_hikes: None
+) -> None:
+    # Three identical 2.5h hikes against an 8h/day budget: best-fit-decreasing
+    # packs all three into day 1 (each placement leaves the least leftover
+    # budget there), leaving days 2 and 3 empty even though every eligible
+    # hike was scheduled -- neither of the other two warning triggers catch
+    # this (scheduled_count == num_days == eligible_hikes == 3).
+    response = await client.post("/trips", json={"park_id": seeded_park, "num_days": 3})
+    assert response.status_code == 201
+    trip = response.json()
+    assert len(trip["days"][0]["hikes"]) == 3
+    assert trip["days"][1]["hikes"] == []
+    assert trip["days"][2]["hikes"] == []
+    assert trip["warning"] is not None
+    assert "ended up empty" in trip["warning"]
+
+
 async def test_trip_hike_duration_falls_back_when_unset(
     client: AsyncClient, seeded_park: int, seeded_hike_no_duration: int
 ) -> None:

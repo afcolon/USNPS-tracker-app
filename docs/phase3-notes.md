@@ -172,6 +172,36 @@ too. Four more findings; outcomes below.
   distinct message in each case: too few hikes available for the day count,
   vs. hikes that didn't fit the hours/day budget and were dropped.
 
+## Third pre-merge review pass (after the warning-logic change)
+
+Run again since the warning fix above was itself new code since the last
+pass. Three findings.
+
+- **Fixed: a day could end up silently empty even with every eligible hike
+  scheduled.** Best-fit-decreasing tends to concentrate hikes into the
+  earliest day(s) it can, because each placement picks whichever day leaves
+  the *least* leftover budget -- verified against real Zion data (5 hikes,
+  3 days: landed as 4/1/0) and reproduced minimally in tests with 3 identical
+  2.5h hikes against an 8h/day budget, all landing on day 1. Neither of the
+  other two warning triggers catches this (`scheduled_count` can equal both
+  `num_days` and `eligible_hikes` while a day is still empty). Added a third
+  warning case naming the specific empty day(s).
+- **Fixed: the same stuck-"Loading your trip…" bug class, re-exposed via a
+  different trigger.** Not "trip loaded, URL state never reset on back" (the
+  earlier fix) but "trip loaded fine, but its `park_id` isn't in the loaded
+  `parks` list" -- previously fell through to the generic loading branch
+  forever, since nothing treated an unresolvable park as an error. Added a
+  dedicated `linkedTripUnresolved` branch (derived during render, no
+  `setState`-in-effect) with an explicit "Back to passport" action, rather
+  than another effect-driven auto-recovery.
+- **Fixed: redundant difficulty filtering.** The endpoint computed
+  `eligible_hikes` via the newly-extracted `filter_by_difficulty()`, then
+  passed the original unfiltered `hikes` into `build_itinerary()`, which
+  filters again internally -- same O(n) work done twice per request. Now
+  passes `eligible_hikes` straight into `build_itinerary()`; its own internal
+  filter call becomes a cheap no-op pass over the already-filtered list
+  rather than re-scanning every hike for the park.
+
 ## Full-stack verification — needs you
 
 Same Docker constraint as every prior phase: this sandbox can't run Postgres, so

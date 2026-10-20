@@ -35,6 +35,7 @@ function App() {
 
   const linkedPark = linkedTrip ? (parks.find((p) => p.id === linkedTrip.park_id) ?? null) : null;
   const activePark = planningPark ?? linkedPark;
+  const linkedTripUnresolved = linkedTrip != null && parks.length > 0 && linkedPark == null;
 
   async function handleToggleVisited(park: Park) {
     try {
@@ -60,6 +61,23 @@ function App() {
         }}
         initialTrip={linkedTrip ?? undefined}
       />
+    );
+  }
+
+  if (linkedTripUnresolved) {
+    return (
+      <main className="passport">
+        <p className="passport__error">Could not find the park for this trip.</p>
+        <button
+          type="button"
+          onClick={() => {
+            setLinkedTrip(null);
+            setLinkedTripId(null);
+          }}
+        >
+          Back to passport
+        </button>
+      </main>
     );
   }
 

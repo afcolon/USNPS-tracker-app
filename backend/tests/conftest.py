@@ -107,6 +107,38 @@ async def seeded_hike_long(session_factory, seeded_park: int) -> int:
 
 
 @pytest.fixture
+async def seeded_three_equal_hikes(session_factory, seeded_park: int) -> None:
+    """Three hikes with identical duration/quality -- used to reproduce the
+    best-fit-decreasing packer's tendency to concentrate everything into the
+    earliest day(s), leaving later days empty even though every hike got
+    scheduled."""
+    async with session_factory() as session:
+        for i in range(3):
+            session.add(
+                Hike(
+                    park_id=seeded_park,
+                    name=f"Equal Hike {i + 1}",
+                    distance_miles=5.0,
+                    elevation_gain_ft=0,
+                    difficulty="easy",
+                    difficulty_score=50.0,
+                    difficulty_override=None,
+                    difficulty_override_reason=None,
+                    hike_type="loop",
+                    trailhead_lat=37.2,
+                    trailhead_lng=-113.0,
+                    estimated_duration_min=150,
+                    source="alltrails",
+                    source_id=f"equal-hike-{i + 1}",
+                    source_url=None,
+                    avg_rating=4.5,
+                    reviews_count=100,
+                )
+            )
+        await session.commit()
+
+
+@pytest.fixture
 async def seeded_hike_no_duration(session_factory, seeded_park: int) -> int:
     """A hike with no `estimated_duration_min` -- mirrors Angels Landing's real
     AllTrails data (see docs/phase2-notes.md), used to test the planner's

@@ -66,7 +66,7 @@ async def create_trip(body: TripIn, db: DbSession) -> TripOut:
     eligible_hikes = filter_by_difficulty(hikes, body.max_difficulty)
 
     days = build_itinerary(
-        hikes,
+        eligible_hikes,
         num_days=body.num_days,
         max_hours_per_day=body.max_hours_per_day,
         max_difficulty=body.max_difficulty,
@@ -105,6 +105,13 @@ async def create_trip(body: TripIn, db: DbSession) -> TripOut:
         warning = (
             f"{dropped_count} hike(s) didn't fit within your {body.max_hours_per_day}-hour/day "
             "budget and were left out of this itinerary."
+        )
+    elif empty_days := [day_number for day_number, day in enumerate(days, start=1) if not day]:
+        day_list = ", ".join(str(d) for d in empty_days)
+        warning = (
+            f"All {scheduled_count} available hike(s) were scheduled, but day(s) {day_list} "
+            "ended up empty -- the planner fills earlier days first rather than spreading "
+            "hikes out evenly."
         )
 
     trip_row = await _fetch_trip(db, trip.id)
