@@ -132,6 +132,11 @@ body {
   color: #b3261e;
 }
 
+.trip-planner__link {
+  font-size: 0.85rem;
+  color: #666;
+}
+
 .trip-planner__warning {
   background: #fff4e5;
   border: 1px solid #e0a327;

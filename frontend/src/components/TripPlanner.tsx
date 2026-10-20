@@ -5,6 +5,7 @@ import type { Hike, Park, Trip, TripRequest } from '../types';
 interface TripPlannerProps {
   park: Park;
   onBack: () => void;
+  initialTrip?: Trip;
 }
 
 const DIFFICULTIES: NonNullable<TripRequest['max_difficulty']>[] = [
@@ -24,13 +25,20 @@ function formatDuration(hike: Hike): string {
   return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 }
 
-export function TripPlanner({ park, onBack }: TripPlannerProps) {
+export function TripPlanner({ park, onBack, initialTrip }: TripPlannerProps) {
   const [numDays, setNumDays] = useState(2);
   const [maxDifficulty, setMaxDifficulty] = useState<string>('');
   const [maxHoursPerDay, setMaxHoursPerDay] = useState(8);
-  const [trip, setTrip] = useState<Trip | null>(null);
+  const [trip, setTrip] = useState<Trip | null>(initialTrip ?? null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  function handleBack() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('trip');
+    window.history.pushState({}, '', url);
+    onBack();
+  }
 
   async function handlePlan() {
     setLoading(true);
@@ -45,6 +53,9 @@ export function TripPlanner({ park, onBack }: TripPlannerProps) {
         max_hours_per_day: maxHoursPerDay,
       });
       setTrip(result);
+      const url = new URL(window.location.href);
+      url.searchParams.set('trip', String(result.id));
+      window.history.pushState({}, '', url);
     } catch {
       setError('Could not plan a trip. Is the backend running?');
     } finally {
@@ -54,7 +65,7 @@ export function TripPlanner({ park, onBack }: TripPlannerProps) {
 
   return (
     <main className="trip-planner">
-      <button type="button" className="trip-planner__back" onClick={onBack}>
+      <button type="button" className="trip-planner__back" onClick={handleBack}>
         ← Back to passport
       </button>
       <h1>Plan a trip: {park.name}</h1>
@@ -100,6 +111,9 @@ export function TripPlanner({ park, onBack }: TripPlannerProps) {
 
       {trip && (
         <div className="trip-planner__itinerary">
+          <p className="trip-planner__link">
+            Saved as trip #{trip.id} — this page's URL now links back to it.
+          </p>
           {trip.warning && <p className="trip-planner__warning">{trip.warning}</p>}
           {trip.days.map((day) => (
             <div key={day.day_number} className="trip-day">

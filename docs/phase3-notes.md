@@ -11,6 +11,7 @@ days respecting an hours budget, no travel-time optimization (that's v2/Phase 4)
 |---|---|---|
 | Trip persistence | Persist to DB (`Trip`/`TripItineraryItem`, spec §6) | Matches the data model sketch; lets a user look back at past plans later. |
 | Frontend UI | Build it now, not deferred | Unlike Phase 2's data-only scope, the trip planner *is* the feature's user-facing value. |
+| Revisiting a saved trip | `?trip=<id>` query param via `history.pushState`, no router library | Caught during manual verification: trips were persisted but nothing in the UI ever surfaced the id, so a "saved" trip was unreachable once you navigated away -- defeating the point of persisting it. Query param keeps the "no router yet" decision (see below) while making a trip bookmarkable/shareable: `App.tsx` reads `?trip=` on load, fetches it, and resolves the owning park from the already-loaded parks list; `TripPlanner` pushes `?trip=<id>` onto the URL right after a successful `POST /trips`. |
 
 **Noted follow-up, explicitly not in Phase 3 scope:** allow a user to delete/clean
 up a saved itinerary (`DELETE /trips/{id}`). Flagged by you during scoping; there's
@@ -139,6 +140,9 @@ frontend build/lint/format only, not a real end-to-end run yet:
   day-by-day itinerary; confirm the "Plan a trip" button doesn't also toggle
   the visited stamp (separate click targets, `stopPropagation` on the inner
   button)
+- ⬜ After creating a trip, the URL updates to `?trip=<id>`; reloading that
+  URL (or opening it fresh) reopens the same itinerary instead of the parks
+  grid
 
 ```bash
 cd backend && uv run alembic upgrade head && uv run uvicorn app.main:app --reload

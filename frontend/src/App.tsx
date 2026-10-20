@@ -1,21 +1,40 @@
 import { useEffect, useState } from 'react';
-import { fetchParks, markVisited, unmarkVisited } from './api';
+import { fetchParks, getTrip, markVisited, unmarkVisited } from './api';
 import { ParkCard } from './components/ParkCard';
 import { TripPlanner } from './components/TripPlanner';
-import type { Park } from './types';
+import type { Park, Trip } from './types';
 
 const TOTAL_NATIONAL_PARKS = 63;
+
+function parseTripIdFromUrl(): number | null {
+  const raw = new URLSearchParams(window.location.search).get('trip');
+  if (!raw) return null;
+  const id = Number(raw);
+  return Number.isFinite(id) ? id : null;
+}
 
 function App() {
   const [parks, setParks] = useState<Park[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [planningPark, setPlanningPark] = useState<Park | null>(null);
+  const [linkedTrip, setLinkedTrip] = useState<Trip | null>(null);
+  const [linkedTripId] = useState<number | null>(() => parseTripIdFromUrl());
 
   useEffect(() => {
     fetchParks()
       .then(setParks)
       .catch(() => setError('Could not load parks. Is the backend running?'));
   }, []);
+
+  useEffect(() => {
+    if (linkedTripId == null) return;
+    getTrip(linkedTripId)
+      .then(setLinkedTrip)
+      .catch(() => setError('Could not load the linked trip. It may no longer exist.'));
+  }, [linkedTripId]);
+
+  const linkedPark = linkedTrip ? (parks.find((p) => p.id === linkedTrip.park_id) ?? null) : null;
+  const activePark = planningPark ?? linkedPark;
 
   async function handleToggleVisited(park: Park) {
     try {
@@ -30,8 +49,25 @@ function App() {
     }
   }
 
-  if (planningPark) {
-    return <TripPlanner park={planningPark} onBack={() => setPlanningPark(null)} />;
+  if (activePark) {
+    return (
+      <TripPlanner
+        park={activePark}
+        onBack={() => {
+          setPlanningPark(null);
+          setLinkedTrip(null);
+        }}
+        initialTrip={linkedTrip ?? undefined}
+      />
+    );
+  }
+
+  if (linkedTripId != null && !error) {
+    return (
+      <main className="passport">
+        <p>Loading your trip…</p>
+      </main>
+    );
   }
 
   const visitedCount = parks.filter((p) => p.visited).length;
